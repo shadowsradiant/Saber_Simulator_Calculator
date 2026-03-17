@@ -212,9 +212,12 @@
               <div class="title">Result</div>
               <div class="value">0.000</div>
             </div>
+            <div class="box daily">
+              <div class="title">Estimated Time</div>
+              <div class="value" id="dailyTime">0 hours</div>
+            </div>
           </div>
 
-          <div class="note" id="dailyTime">Estimated time: 0 hours</div>
           <div class="note">Multiplier per daily: 3.062888049375×</div>
         </section>
       </div>
@@ -407,7 +410,7 @@
       const baseLog10 = parseCustomNumberLog(baseInput);
       if (baseLog10 === null) {
         output.textContent = "Invalid input";
-        document.getElementById("dailyTime").textContent = "Estimated time: 0 hours";
+        document.getElementById("dailyTime").textContent = "Invalid input";
         return;
       }
 
@@ -415,7 +418,7 @@
       const resultLog10 = baseLog10 + dailyCount * log10Multiplier;
 
       output.textContent = formatFromLog10(resultLog10);
-      document.getElementById("dailyTime").textContent = "Estimated time: " + formatDailyTime(dailyCount);
+      document.getElementById("dailyTime").textContent = formatDailyTime(dailyCount);
     }
 
     document.getElementById("runs").addEventListener("input", update);
