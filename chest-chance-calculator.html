@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chest Chance Calculator</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #111823;
+      --text: #e6eef8;
+      --muted: #9db0c8;
+      --input: #0f1622;
+      --border: #223047;
+
+      --shiny: #a7b0bb;   /* grey */
+      --rainbow: #ff6ad5; /* rainbow accent */
+      --void: #7a4bff;    /* purple */
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(1200px 600px at 20% -10%, #1a2440 0%, #0b0f14 50%, #090c10 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 1100px;
+      background: linear-gradient(180deg, #121a26 0%, #0f1622 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      margin: 0 0 6px 0;
+      font-size: 1.8rem;
+      letter-spacing: 0.3px;
+    }
+
+    p {
+      margin: 0 0 18px 0;
+      color: var(--muted);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    input {
+      background: var(--input);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 1rem;
+      border-radius: 10px;
+      width: 220px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .box {
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 96px;
+    }
+
+    .box .title {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .box .value {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .shiny { border-color: var(--shiny); box-shadow: 0 0 0 1px rgba(167,176,187,0.2); }
+    .rainbow { border-color: var(--rainbow); box-shadow: 0 0 0 1px rgba(255,106,213,0.25), 0 0 12px rgba(255,106,213,0.25); }
+    .void { border-color: var(--void); box-shadow: 0 0 0 1px rgba(122,75,255,0.25), 0 0 12px rgba(122,75,255,0.25); }
+
+    .note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Chest Chance Calculator</h1>
+    <p>Enter the number of runs to see the chance of getting at least one chest.</p>
+
+    <div class="split">
+      <section>
+        <div class="section-title">At Least One Chest</div>
+        <div class="input-row">
+          <div>
+            <label for="runs">Number of runs</label>
+            <input id="runs" type="number" min="0" value="0" />
+          </div>
+        </div>
+
+        <div class="grid" id="output">
+          <div class="box shiny">
+            <div class="title">Shiny</div>
+            <div class="value">0.000000%</div>
+          </div>
+          <div class="box rainbow">
+            <div class="title">Rainbow</div>
+            <div class="value">0.000000%</div>
+          </div>
+          <div class="box void">
+            <div class="title">Void</div>
+            <div class="value">0.000000%</div>
+          </div>
+        </div>
+
+        <div class="note">Formula: 1 - (1 - p)^n</div>
+      </section>
+
+      <section>
+        <div class="section-title">Expected Chest Counts</div>
+        <div class="input-row">
+          <div>
+            <label for="runsExpected">Number of runs</label>
+            <input id="runsExpected" type="number" min="0" value="0" />
+          </div>
+        </div>
+
+        <div class="grid" id="expectedOutput">
+          <div class="box shiny">
+            <div class="title">Shiny</div>
+            <div class="value">0.00</div>
+          </div>
+          <div class="box rainbow">
+            <div class="title">Rainbow</div>
+            <div class="value">0.00</div>
+          </div>
+          <div class="box void">
+            <div class="title">Void</div>
+            <div class="value">0.00</div>
+          </div>
+        </div>
+
+        <div class="note">Expected value: runs × p (average over many runs).</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const probs = {
+      shiny: 0.75,
+      rainbow: 0.245,
+      void: 0.005
+    };
+
+    function atLeastOne(p, n) {
+      return 1 - Math.pow(1 - p, n);
+    }
+
+    function update() {
+      const n = Math.max(0, Number(document.getElementById("runs").value || 0));
+      const shiny = atLeastOne(probs.shiny, n);
+      const rainbow = atLeastOne(probs.rainbow, n);
+      const voidChance = atLeastOne(probs.void, n);
+
+      const boxes = document.querySelectorAll(".box .value");
+      boxes[0].textContent = `${(shiny * 100).toFixed(6)}%`;
+      boxes[1].textContent = `${(rainbow * 100).toFixed(6)}%`;
+      boxes[2].textContent = `${(voidChance * 100).toFixed(6)}%`;
+    }
+
+    function updateExpected() {
+      const n = Math.max(0, Number(document.getElementById("runsExpected").value || 0));
+      const expectedShiny = n * probs.shiny;
+      const expectedRainbow = n * probs.rainbow;
+      const expectedVoid = n * probs.void;
+
+      const expectedBoxes = document.querySelectorAll("#expectedOutput .box .value");
+      expectedBoxes[0].textContent = expectedShiny.toFixed(2);
+      expectedBoxes[1].textContent = expectedRainbow.toFixed(2);
+      expectedBoxes[2].textContent = expectedVoid.toFixed(2);
+    }
+
+    document.getElementById("runs").addEventListener("input", update);
+    document.getElementById("runsExpected").addEventListener("input", updateExpected);
+    update();
+    updateExpected();
+  </script>
+</body>
+</html>
