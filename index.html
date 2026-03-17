@@ -103,6 +103,9 @@
     .box .value {
       font-size: 1.6rem;
       font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .shiny { border-color: var(--shiny); box-shadow: 0 0 0 1px rgba(167,176,187,0.2); }
@@ -220,9 +223,9 @@
       const expectedVoid = n * probs.void;
 
       const expectedBoxes = document.querySelectorAll("#expectedOutput .box .value");
-      expectedBoxes[0].textContent = expectedShiny.toFixed(2);
-      expectedBoxes[1].textContent = expectedRainbow.toFixed(2);
-      expectedBoxes[2].textContent = expectedVoid.toFixed(2);
+      expectedBoxes[0].textContent = expectedShiny.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      expectedBoxes[1].textContent = expectedRainbow.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      expectedBoxes[2].textContent = expectedVoid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     document.getElementById("runs").addEventListener("input", update);
