@@ -251,13 +251,11 @@
       if (probs.gold !== undefined) {
         boxes.push(makeBox("gold", "Gold", `${(atLeastOne(probs.gold, n) * 100).toFixed(6)}%`));
       }
-
       boxes.push(makeBox("shiny", "Shiny", `${(atLeastOne(probs.shiny, n) * 100).toFixed(6)}%`));
 
       if (probs.rainbow !== undefined) {
         boxes.push(makeBox("rainbow", "Rainbow", `${(atLeastOne(probs.rainbow, n) * 100).toFixed(6)}%`));
       }
-
       if (probs.void !== undefined) {
         boxes.push(makeBox("void", "Void", `${(atLeastOne(probs.void, n) * 100).toFixed(6)}%`));
       }
@@ -289,6 +287,7 @@
       timeBox.textContent = formatDuration(totalMinutes);
     }
 
+    // Suffixes
     const baseSuffixes = [
       "", "K", "M", "B", "t", "q", "Q", "s", "S", "o", "n", "d", "U", "D", "T",
       "Qt", "Qd", "Sd", "St", "O", "N", "v", "c"
@@ -296,9 +295,7 @@
 
     const suffixes = [...baseSuffixes];
 
-    for (let i = 0; i < 26; i++) {
-      suffixes.push("k" + String.fromCharCode(97 + i));
-    }
+    for (let i = 0; i < 26; i++) suffixes.push("k" + String.fromCharCode(97 + i));
     for (let i = 0; i < 26; i++) {
       for (let j = 0; j < 26; j++) {
         suffixes.push("k" + String.fromCharCode(97 + i) + String.fromCharCode(97 + j));
@@ -317,36 +314,56 @@
       }
     }
 
-    function parseCustomNumber(input) {
+    function log10FromString(numStr) {
+      let s = numStr.replace(/,/g, "");
+      if (!s) return null;
+      if (!/^[0-9]+(\.[0-9]+)?$/.test(s)) return null;
+
+      let [intPart, decPart] = s.split(".");
+      intPart = intPart.replace(/^0+/, "") || "0";
+
+      if (intPart !== "0") {
+        const digits = intPart.length;
+        const leading = intPart.slice(0, 15);
+        const mantissa = Number(leading) / Math.pow(10, leading.length - 1);
+        return Math.log10(mantissa) + (digits - 1);
+      } else {
+        if (!decPart) return -Infinity;
+        const match = decPart.match(/[^0]/);
+        if (!match) return -Infinity;
+        const idx = match.index;
+        const leading = decPart.slice(idx, idx + 15);
+        const mantissa = Number(leading) / Math.pow(10, leading.length - 1);
+        return Math.log10(mantissa) - (idx + 1);
+      }
+    }
+
+    function parseCustomNumberLog(input) {
       const trimmed = (input || "").trim();
       if (!trimmed) return null;
 
-      const match = trimmed.match(/^([0-9]+(?:\.[0-9]+)?)\s*([A-Za-z]*)$/);
+      const match = trimmed.match(/^([0-9.,]+)\s*([A-Za-z]*)$/);
       if (!match) return null;
 
-      const value = Number(match[1]);
-      if (!isFinite(value)) return null;
-
+      const numPart = match[1];
       const suffix = match[2] || "";
       const index = suffixes.indexOf(suffix);
       if (index === -1) return null;
 
-      return value * Math.pow(1000, index);
+      const log10 = log10FromString(numPart);
+      if (log10 === null || log10 === -Infinity) return null;
+
+      return log10 + index * 3;
     }
 
-    function formatCustomNumber(value) {
-      if (!isFinite(value)) return "Invalid input";
-      if (value === 0) return "0.000";
+    function formatFromLog10(log10Value) {
+      if (!isFinite(log10Value)) return "Invalid input";
+      if (log10Value < -300) return "0.000";
 
-      let index = 0;
-      let v = value;
-
-      while (v >= 1000 && index < suffixes.length - 1) {
-        v /= 1000;
-        index++;
-      }
-
-      const formatted = v.toFixed(3);
+      const index = Math.max(0, Math.min(suffixes.length - 1, Math.floor(log10Value / 3)));
+      const remainder = log10Value - index * 3;
+      const scaled = Math.pow(10, remainder);
+      const formatted = scaled.toFixed(3);
       const suffix = suffixes[index];
       return suffix ? `${formatted} ${suffix}` : formatted;
     }
@@ -354,18 +371,18 @@
     function updateDailies() {
       const baseInput = document.getElementById("dailyValue").value;
       const dailyCount = Math.max(0, Number(document.getElementById("dailyCount").value || 0));
-
-      const baseValue = parseCustomNumber(baseInput);
       const output = document.querySelector("#dailyOutput .box .value");
 
-      if (baseValue === null) {
+      const baseLog10 = parseCustomNumberLog(baseInput);
+      if (baseLog10 === null) {
         output.textContent = "Invalid input";
         return;
       }
 
-      const multiplier = Math.pow(3.062888049375, dailyCount);
-      const result = baseValue * multiplier;
-      output.textContent = formatCustomNumber(result);
+      const log10Multiplier = Math.log10(3.062888049375);
+      const resultLog10 = baseLog10 + dailyCount * log10Multiplier;
+
+      output.textContent = formatFromLog10(resultLog10);
     }
 
     document.getElementById("runs").addEventListener("input", update);
