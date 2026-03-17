@@ -198,7 +198,7 @@
           <div class="section-title">Dailies Calculator</div>
           <div class="input-row">
             <div>
-              <label for="dailyValue">Base value (e.g. 800 kbe)</label>
+              <label for="dailyValue">Coins/Crowns (e.g. 800 kbe)</label>
               <input id="dailyValue" type="text" placeholder="800 kbe" />
             </div>
             <div>
@@ -214,6 +214,7 @@
             </div>
           </div>
 
+          <div class="note" id="dailyTime">Estimated time: 0 hours</div>
           <div class="note">Multiplier per daily: 3.062888049375×</div>
         </section>
       </div>
@@ -287,7 +288,6 @@
       timeBox.textContent = formatDuration(totalMinutes);
     }
 
-    // Suffixes
     const baseSuffixes = [
       "", "K", "M", "B", "t", "q", "Q", "s", "S", "o", "n", "d", "U", "D", "T",
       "Qt", "Qd", "Sd", "St", "O", "N", "v", "c"
@@ -368,6 +368,37 @@
       return suffix ? `${formatted} ${suffix}` : formatted;
     }
 
+    function formatDailyTime(dailies) {
+      const totalHours = dailies * 12;
+
+      const hoursInYear = 365 * 24;
+      const hoursInMonth = 30 * 24;
+      const hoursInWeek = 7 * 24;
+      const hoursInDay = 24;
+
+      let hours = Math.floor(totalHours);
+
+      const years = Math.floor(hours / hoursInYear);
+      hours -= years * hoursInYear;
+
+      const months = Math.floor(hours / hoursInMonth);
+      hours -= months * hoursInMonth;
+
+      const weeks = Math.floor(hours / hoursInWeek);
+      hours -= weeks * hoursInWeek;
+
+      const days = Math.floor(hours / hoursInDay);
+      hours -= days * hoursInDay;
+
+      const parts = [];
+      if (years > 0) parts.push(`${years} year${years === 1 ? "" : "s"}`);
+      if (months > 0) parts.push(`${months} month${months === 1 ? "" : "s"}`);
+      if (weeks > 0) parts.push(`${weeks} week${weeks === 1 ? "" : "s"}`);
+      if (days > 0) parts.push(`${days} day${days === 1 ? "" : "s"}`);
+      if (hours > 0 || parts.length === 0) parts.push(`${hours} hour${hours === 1 ? "" : "s"}`);
+      return parts.join(", ");
+    }
+
     function updateDailies() {
       const baseInput = document.getElementById("dailyValue").value;
       const dailyCount = Math.max(0, Number(document.getElementById("dailyCount").value || 0));
@@ -376,6 +407,7 @@
       const baseLog10 = parseCustomNumberLog(baseInput);
       if (baseLog10 === null) {
         output.textContent = "Invalid input";
+        document.getElementById("dailyTime").textContent = "Estimated time: 0 hours";
         return;
       }
 
@@ -383,6 +415,7 @@
       const resultLog10 = baseLog10 + dailyCount * log10Multiplier;
 
       output.textContent = formatFromLog10(resultLog10);
+      document.getElementById("dailyTime").textContent = "Estimated time: " + formatDailyTime(dailyCount);
     }
 
     document.getElementById("runs").addEventListener("input", update);
