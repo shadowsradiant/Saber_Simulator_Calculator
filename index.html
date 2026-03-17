@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Saber Simulator Calculator</title>
+  <title>Chest Chance Calculator</title>
   <style>
     :root {
       --bg: #0b0f14;
@@ -324,19 +324,19 @@
 
       let [intPart, decPart] = s.split(".");
       intPart = intPart.replace(/^0+/, "") || "0";
+      decPart = decPart || "";
 
       if (intPart !== "0") {
         const digits = intPart.length;
-        const leading = intPart.slice(0, 15);
-        const mantissa = Number(leading) / Math.pow(10, leading.length - 1);
+        const combined = (intPart + decPart).slice(0, 15);
+        const mantissa = Number(combined) / Math.pow(10, combined.length - 1);
         return Math.log10(mantissa) + (digits - 1);
       } else {
-        if (!decPart) return -Infinity;
         const match = decPart.match(/[^0]/);
         if (!match) return -Infinity;
         const idx = match.index;
-        const leading = decPart.slice(idx, idx + 15);
-        const mantissa = Number(leading) / Math.pow(10, leading.length - 1);
+        const combined = decPart.slice(idx, idx + 15);
+        const mantissa = Number(combined) / Math.pow(10, combined.length - 1);
         return Math.log10(mantissa) - (idx + 1);
       }
     }
