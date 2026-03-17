@@ -13,9 +13,10 @@
       --input: #0f1622;
       --border: #223047;
 
-      --shiny: #a7b0bb;   /* grey */
-      --rainbow: #ff6ad5; /* rainbow accent */
-      --void: #7a4bff;    /* purple */
+      --gold: #f6c453;
+      --shiny: #a7b0bb;
+      --rainbow: #ff6ad5;
+      --void: #7a4bff;
     }
 
     * { box-sizing: border-box; }
@@ -63,7 +64,7 @@
       margin-bottom: 18px;
     }
 
-    input {
+    input, select {
       background: var(--input);
       color: var(--text);
       border: 1px solid var(--border);
@@ -103,6 +104,7 @@
       text-overflow: ellipsis;
     }
 
+    .gold { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(246,196,83,0.25), 0 0 12px rgba(246,196,83,0.25); }
     .shiny { border-color: var(--shiny); box-shadow: 0 0 0 1px rgba(167,176,187,0.2); }
     .rainbow { border-color: var(--rainbow); box-shadow: 0 0 0 1px rgba(255,106,213,0.25), 0 0 12px rgba(255,106,213,0.25); }
     .void { border-color: var(--void); box-shadow: 0 0 0 1px rgba(122,75,255,0.25), 0 0 12px rgba(122,75,255,0.25); }
@@ -112,6 +114,8 @@
       color: var(--muted);
       font-size: 0.9rem;
     }
+
+    .note strong { color: #ffffff; }
 
     .split {
       display: grid;
@@ -135,97 +139,122 @@
         <div class="section-title">At Least One Chest</div>
         <div class="input-row">
           <div>
+            <label for="difficulty">Difficulty</label>
+            <select id="difficulty">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+              <option value="impossible">Impossible</option>
+            </select>
+          </div>
+          <div>
             <label for="runs">Number of runs</label>
             <input id="runs" type="number" min="0" value="0" />
           </div>
         </div>
 
-        <div class="grid" id="output">
-          <div class="box shiny">
-            <div class="title">Shiny</div>
-            <div class="value">0.000000%</div>
-          </div>
-          <div class="box rainbow">
-            <div class="title">Rainbow</div>
-            <div class="value">0.000000%</div>
-          </div>
-          <div class="box void">
-            <div class="title">Void</div>
-            <div class="value">0.000000%</div>
-          </div>
-        </div>
+        <div class="grid" id="output"></div>
 
         <div class="note">Formula: 1 - (1 - p)^n</div>
+        <div class="note"><strong>*NOTE This is just a Probability Calculator and no Chances are 100% guarantee</strong></div>
       </section>
 
       <section>
-        <div class="section-title">Expected Chest Counts</div>
+        <div class="section-title">Time to Complete Runs</div>
         <div class="input-row">
           <div>
-            <label for="runsExpected">Number of runs</label>
-            <input id="runsExpected" type="number" min="0" value="0" />
+            <label for="runsTime">Number of runs</label>
+            <input id="runsTime" type="number" min="0" value="0" />
           </div>
         </div>
 
-        <div class="grid" id="expectedOutput">
+        <div class="grid" id="timeOutput">
           <div class="box shiny">
-            <div class="title">Shiny</div>
-            <div class="value">0.00</div>
-          </div>
-          <div class="box rainbow">
-            <div class="title">Rainbow</div>
-            <div class="value">0.00</div>
-          </div>
-          <div class="box void">
-            <div class="title">Void</div>
-            <div class="value">0.00</div>
+            <div class="title">Estimated Time</div>
+            <div class="value">0 minutes</div>
           </div>
         </div>
 
-        <div class="note">Expected value: runs × p (average over many runs).</div>
+        <div class="note">Assumes 1 run every 15 minutes (4 per hour, 96 per day).</div>
       </section>
     </div>
   </div>
 
   <script>
-    const probs = {
-      shiny: 0.75,
-      rainbow: 0.245,
-      void: 0.005
+    const difficultyData = {
+      easy:   { gold: 0.85,  shiny: 0.15 },
+      medium: { gold: 0.75,  shiny: 0.23, rainbow: 0.02 },
+      hard:   { gold: 0.60,  shiny: 0.30, rainbow: 0.099, void: 0.001 },
+      impossible: { shiny: 0.75, rainbow: 0.245, void: 0.005 }
     };
 
     function atLeastOne(p, n) {
       return 1 - Math.pow(1 - p, n);
     }
 
-    function update() {
-      const n = Math.max(0, Number(document.getElementById("runs").value || 0));
-      const shiny = atLeastOne(probs.shiny, n);
-      const rainbow = atLeastOne(probs.rainbow, n);
-      const voidChance = atLeastOne(probs.void, n);
-
-      const boxes = document.querySelectorAll(".box .value");
-      boxes[0].textContent = `${(shiny * 100).toFixed(6)}%`;
-      boxes[1].textContent = `${(rainbow * 100).toFixed(6)}%`;
-      boxes[2].textContent = `${(voidChance * 100).toFixed(6)}%`;
+    function makeBox(type, label, valueText) {
+      return `
+        <div class="box ${type}">
+          <div class="title">${label}</div>
+          <div class="value">${valueText}</div>
+        </div>
+      `;
     }
 
-    function updateExpected() {
-      const n = Math.max(0, Number(document.getElementById("runsExpected").value || 0));
-      const expectedShiny = n * probs.shiny;
-      const expectedRainbow = n * probs.rainbow;
-      const expectedVoid = n * probs.void;
+    function update() {
+      const n = Math.max(0, Number(document.getElementById("runs").value || 0));
+      const diff = document.getElementById("difficulty").value;
+      const probs = difficultyData[diff];
 
-      const expectedBoxes = document.querySelectorAll("#expectedOutput .box .value");
-      expectedBoxes[0].textContent = expectedShiny.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      expectedBoxes[1].textContent = expectedRainbow.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      expectedBoxes[2].textContent = expectedVoid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const boxes = [];
+
+      if (probs.gold !== undefined) {
+        boxes.push(makeBox("gold", "Gold", `${(atLeastOne(probs.gold, n) * 100).toFixed(6)}%`));
+      }
+
+      boxes.push(makeBox("shiny", "Shiny", `${(atLeastOne(probs.shiny, n) * 100).toFixed(6)}%`));
+
+      if (probs.rainbow !== undefined) {
+        boxes.push(makeBox("rainbow", "Rainbow", `${(atLeastOne(probs.rainbow, n) * 100).toFixed(6)}%`));
+      }
+
+      if (probs.void !== undefined) {
+        boxes.push(makeBox("void", "Void", `${(atLeastOne(probs.void, n) * 100).toFixed(6)}%`));
+      }
+
+      document.getElementById("output").innerHTML = boxes.join("");
+    }
+
+    function formatDuration(totalMinutes) {
+      let minutes = Math.max(0, Math.floor(totalMinutes));
+      const weeks = Math.floor(minutes / (7 * 24 * 60));
+      minutes -= weeks * 7 * 24 * 60;
+      const days = Math.floor(minutes / (24 * 60));
+      minutes -= days * 24 * 60;
+      const hours = Math.floor(minutes / 60);
+      minutes -= hours * 60;
+
+      const parts = [];
+      if (weeks > 0) parts.push(`${weeks} week${weeks === 1 ? "" : "s"}`);
+      if (days > 0) parts.push(`${days} day${days === 1 ? "" : "s"}`);
+      if (hours > 0) parts.push(`${hours} hour${hours === 1 ? "" : "s"}`);
+      if (minutes > 0 || parts.length === 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
+      return parts.join(", ");
+    }
+
+    function updateTime() {
+      const n = Math.max(0, Number(document.getElementById("runsTime").value || 0));
+      const totalMinutes = n * 15;
+      const timeBox = document.querySelector("#timeOutput .box .value");
+      timeBox.textContent = formatDuration(totalMinutes);
     }
 
     document.getElementById("runs").addEventListener("input", update);
-    document.getElementById("runsExpected").addEventListener("input", updateExpected);
+    document.getElementById("difficulty").addEventListener("change", update);
+    document.getElementById("runsTime").addEventListener("input", updateTime);
+
     update();
-    updateExpected();
+    updateTime();
   </script>
 </body>
 </html>
