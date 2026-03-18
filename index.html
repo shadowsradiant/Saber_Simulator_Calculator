@@ -413,13 +413,13 @@
   <script>
     // Tabs
     const tabs = document.querySelectorAll(".tab");
-    const sections = ["home", "dungeon", "pet-index", "dailies"].map(id => document.getElementById(id));
-    function showSection(id) {
-      sections.forEach(s => s.classList.add("hidden"));
+    const sections = ["home","dungeon","pet-index","dailies"].map(id => document.getElementById(id));
+    function showSection(id){
+      sections.forEach(s=>s.classList.add("hidden"));
       document.getElementById(id).classList.remove("hidden");
-      tabs.forEach(t => t.classList.toggle("active", t.dataset.target === id));
+      tabs.forEach(t=>t.classList.toggle("active", t.dataset.target===id));
     }
-    tabs.forEach(t => t.addEventListener("click", () => showSection(t.dataset.target)));
+    tabs.forEach(t=>t.addEventListener("click",()=>showSection(t.dataset.target)));
     showSection("home");
 
     // Dungeon calculator
@@ -430,224 +430,167 @@
       impossible: { shiny: 0.75, rainbow: 0.245, void: 0.005 }
     };
 
-    function atLeastOne(p, n) {
-      return 1 - Math.pow(1 - p, n);
+    function atLeastOne(p, n){ return 1 - Math.pow(1 - p, n); }
+    function makeBox(type, label, valueText){
+      return `<div class="box ${type}"><div class="title">${label}</div><div class="value">${valueText}</div></div>`;
     }
 
-    function makeBox(type, label, valueText) {
-      return `
-        <div class="box ${type}">
-          <div class="title">${label}</div>
-          <div class="value">${valueText}</div>
-        </div>
-      `;
-    }
-
-    function updateDungeon() {
+    function updateDungeon(){
       const n = Math.max(0, Number(document.getElementById("runs").value || 0));
       const diff = document.getElementById("difficulty").value;
       const probs = difficultyData[diff];
-
       const boxes = [];
-      if (probs.gold !== undefined) boxes.push(makeBox("gold", "Gold", `${(atLeastOne(probs.gold, n) * 100).toFixed(6)}%`));
-      boxes.push(makeBox("shiny", "Shiny", `${(atLeastOne(probs.shiny, n) * 100).toFixed(6)}%`));
-      if (probs.rainbow !== undefined) boxes.push(makeBox("rainbow", "Rainbow", `${(atLeastOne(probs.rainbow, n) * 100).toFixed(6)}%`));
-      if (probs.void !== undefined) boxes.push(makeBox("void", "Void", `${(atLeastOne(probs.void, n) * 100).toFixed(6)}%`));
-
+      if (probs.gold !== undefined) boxes.push(makeBox("gold","Gold",`${(atLeastOne(probs.gold,n)*100).toFixed(6)}%`));
+      boxes.push(makeBox("shiny","Shiny",`${(atLeastOne(probs.shiny,n)*100).toFixed(6)}%`));
+      if (probs.rainbow !== undefined) boxes.push(makeBox("rainbow","Rainbow",`${(atLeastOne(probs.rainbow,n)*100).toFixed(6)}%`));
+      if (probs.void !== undefined) boxes.push(makeBox("void","Void",`${(atLeastOne(probs.void,n)*100).toFixed(6)}%`));
       document.getElementById("output").innerHTML = boxes.join("");
     }
 
-    function formatDuration(totalMinutes) {
+    function formatDuration(totalMinutes){
       let minutes = Math.max(0, Math.floor(totalMinutes));
-      const weeks = Math.floor(minutes / (7 * 24 * 60));
-      minutes -= weeks * 7 * 24 * 60;
-      const days = Math.floor(minutes / (24 * 60));
-      minutes -= days * 24 * 60;
-      const hours = Math.floor(minutes / 60);
-      minutes -= hours * 60;
+      const weeks = Math.floor(minutes / (7*24*60)); minutes -= weeks*7*24*60;
+      const days = Math.floor(minutes / (24*60)); minutes -= days*24*60;
+      const hours = Math.floor(minutes / 60); minutes -= hours*60;
 
       const parts = [];
-      if (weeks > 0) parts.push(`${weeks} week${weeks === 1 ? "" : "s"}`);
-      if (days > 0) parts.push(`${days} day${days === 1 ? "" : "s"}`);
-      if (hours > 0) parts.push(`${hours} hour${hours === 1 ? "" : "s"}`);
-      if (minutes > 0 || parts.length === 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
+      if (weeks>0) parts.push(`${weeks} week${weeks===1?"":"s"}`);
+      if (days>0) parts.push(`${days} day${days===1?"":"s"}`);
+      if (hours>0) parts.push(`${hours} hour${hours===1?"":"s"}`);
+      if (minutes>0 || parts.length===0) parts.push(`${minutes} minute${minutes===1?"":"s"}`);
       return parts.join(", ");
     }
 
-    function updateTime() {
+    function updateTime(){
       const n = Math.max(0, Number(document.getElementById("runsTime").value || 0));
       const totalMinutes = n * 15;
-      const timeBox = document.querySelector("#timeOutput .box .value");
-      timeBox.textContent = formatDuration(totalMinutes);
+      document.querySelector("#timeOutput .box .value").textContent = formatDuration(totalMinutes);
     }
 
     document.getElementById("runs").addEventListener("input", updateDungeon);
     document.getElementById("difficulty").addEventListener("change", updateDungeon);
     document.getElementById("runsTime").addEventListener("input", updateTime);
-
-    updateDungeon();
-    updateTime();
+    updateDungeon(); updateTime();
 
     // Dailies calculator
-    const baseSuffixes = [
-      "", "K", "M", "B", "t", "q", "Q", "s", "S", "o", "n", "d", "U", "D", "T",
-      "Qt", "Qd", "Sd", "St", "O", "N", "v", "c"
-    ];
+    const baseSuffixes=["","K","M","B","t","q","Q","s","S","o","n","d","U","D","T","Qt","Qd","Sd","St","O","N","v","c"];
+    const suffixes=[...baseSuffixes];
+    for(let i=0;i<26;i++) suffixes.push("k"+String.fromCharCode(97+i));
+    for(let i=0;i<26;i++) for(let j=0;j<26;j++) suffixes.push("k"+String.fromCharCode(97+i)+String.fromCharCode(97+j));
+    for(let i=0;i<26;i++) for(let j=0;j<26;j++) for(let k=0;k<26;k++) suffixes.push("k"+String.fromCharCode(97+i)+String.fromCharCode(97+j)+String.fromCharCode(97+k));
 
-    const suffixes = [...baseSuffixes];
-    for (let i = 0; i < 26; i++) suffixes.push("k" + String.fromCharCode(97 + i));
-    for (let i = 0; i < 26; i++) for (let j = 0; j < 26; j++) suffixes.push("k" + String.fromCharCode(97 + i) + String.fromCharCode(97 + j));
-    for (let i = 0; i < 26; i++) for (let j = 0; j < 26; j++) for (let k = 0; k < 26; k++) suffixes.push("k" + String.fromCharCode(97 + i) + String.fromCharCode(97 + j) + String.fromCharCode(97 + k));
-
-    function log10FromString(numStr) {
-      let s = numStr.replace(/,/g, "");
-      if (!s) return null;
-      if (!/^[0-9]+(\.[0-9]+)?$/.test(s)) return null;
-
-      let [intPart, decPart] = s.split(".");
-      intPart = intPart.replace(/^0+/, "") || "0";
-      decPart = decPart || "";
-
-      if (intPart !== "0") {
-        const digits = intPart.length;
-        const combined = (intPart + decPart).slice(0, 15);
-        const mantissa = Number(combined) / Math.pow(10, combined.length - 1);
-        return Math.log10(mantissa) + (digits - 1);
+    function log10FromString(numStr){
+      let s=numStr.replace(/,/g,"");
+      if(!s) return null;
+      if(!/^[0-9]+(\.[0-9]+)?$/.test(s)) return null;
+      let [intPart,decPart]=s.split(".");
+      intPart=intPart.replace(/^0+/,"")||"0";
+      decPart=decPart||"";
+      if(intPart!=="0"){
+        const digits=intPart.length;
+        const combined=(intPart+decPart).slice(0,15);
+        const mantissa=Number(combined)/Math.pow(10,combined.length-1);
+        return Math.log10(mantissa)+(digits-1);
       } else {
-        const match = decPart.match(/[^0]/);
-        if (!match) return -Infinity;
-        const idx = match.index;
-        const combined = decPart.slice(idx, idx + 15);
-        const mantissa = Number(combined) / Math.pow(10, combined.length - 1);
-        return Math.log10(mantissa) - (idx + 1);
+        const match=decPart.match(/[^0]/);
+        if(!match) return -Infinity;
+        const idx=match.index;
+        const combined=decPart.slice(idx,idx+15);
+        const mantissa=Number(combined)/Math.pow(10,combined.length-1);
+        return Math.log10(mantissa)-(idx+1);
       }
     }
 
-    function parseCustomNumberLog(input) {
-      const trimmed = (input || "").trim();
-      if (!trimmed) return null;
-
-      const match = trimmed.match(/^([0-9.,]+)\s*([A-Za-z]*)$/);
-      if (!match) return null;
-
-      const numPart = match[1];
-      const suffix = match[2] || "";
-      const index = suffixes.indexOf(suffix);
-      if (index === -1) return null;
-
-      const log10 = log10FromString(numPart);
-      if (log10 === null || log10 === -Infinity) return null;
-
-      return log10 + index * 3;
+    function parseCustomNumberLog(input){
+      const trimmed=(input||"").trim();
+      if(!trimmed) return null;
+      const match=trimmed.match(/^([0-9.,]+)\s*([A-Za-z]*)$/);
+      if(!match) return null;
+      const numPart=match[1];
+      const suffix=match[2]||"";
+      const index=suffixes.indexOf(suffix);
+      if(index===-1) return null;
+      const log10=log10FromString(numPart);
+      if(log10===null||log10===-Infinity) return null;
+      return log10+index*3;
     }
 
-    function formatFromLog10(log10Value) {
-      if (!isFinite(log10Value)) return "Invalid input";
-      if (log10Value < -300) return "0.000";
-
-      const index = Math.max(0, Math.min(suffixes.length - 1, Math.floor(log10Value / 3)));
-      const remainder = log10Value - index * 3;
-      const scaled = Math.pow(10, remainder);
-      const formatted = scaled.toFixed(3);
-      const suffix = suffixes[index];
-      return suffix ? `${formatted} ${suffix}` : formatted;
+    function formatFromLog10(log10Value){
+      if(!isFinite(log10Value)) return "Invalid input";
+      if(log10Value<-300) return "0.000";
+      const index=Math.max(0,Math.min(suffixes.length-1,Math.floor(log10Value/3)));
+      const remainder=log10Value-index*3;
+      const scaled=Math.pow(10,remainder);
+      const formatted=scaled.toFixed(3);
+      const suffix=suffixes[index];
+      return suffix?`${formatted} ${suffix}`:formatted;
     }
 
-    function formatDailyTime(dailies) {
-      const totalHours = dailies * 12;
-
-      const hoursInYear = 365 * 24;
-      const hoursInMonth = 30 * 24;
-      const hoursInWeek = 7 * 24;
-      const hoursInDay = 24;
-
-      let hours = Math.floor(totalHours);
-
-      const years = Math.floor(hours / hoursInYear);
-      hours -= years * hoursInYear;
-
-      const months = Math.floor(hours / hoursInMonth);
-      hours -= months * hoursInMonth;
-
-      const weeks = Math.floor(hours / hoursInWeek);
-      hours -= weeks * hoursInWeek;
-
-      const days = Math.floor(hours / hoursInDay);
-      hours -= days * hoursInDay;
-
-      const parts = [];
-      if (years > 0) parts.push(`${years} year${years === 1 ? "" : "s"}`);
-      if (months > 0) parts.push(`${months} month${months === 1 ? "" : "s"}`);
-      if (weeks > 0) parts.push(`${weeks} week${weeks === 1 ? "" : "s"}`);
-      if (days > 0) parts.push(`${days} day${days === 1 ? "" : "s"}`);
-      if (hours > 0 || parts.length === 0) parts.push(`${hours} hour${hours === 1 ? "" : "s"}`);
+    function formatDailyTime(dailies){
+      const totalHours=dailies*12;
+      const hoursInYear=365*24, hoursInMonth=30*24, hoursInWeek=7*24, hoursInDay=24;
+      let hours=Math.floor(totalHours);
+      const years=Math.floor(hours/hoursInYear); hours-=years*hoursInYear;
+      const months=Math.floor(hours/hoursInMonth); hours-=months*hoursInMonth;
+      const weeks=Math.floor(hours/hoursInWeek); hours-=weeks*hoursInWeek;
+      const days=Math.floor(hours/hoursInDay); hours-=days*hoursInDay;
+      const parts=[];
+      if(years>0) parts.push(`${years} year${years===1?"":"s"}`);
+      if(months>0) parts.push(`${months} month${months===1?"":"s"}`);
+      if(weeks>0) parts.push(`${weeks} week${weeks===1?"":"s"}`);
+      if(days>0) parts.push(`${days} day${days===1?"":"s"}`);
+      if(hours>0||parts.length===0) parts.push(`${hours} hour${hours===1?"":"s"}`);
       return parts.join(", ");
     }
 
-    function updateDailies() {
-      const baseInput = document.getElementById("dailyValue").value;
-      const dailyCount = Math.max(0, Number(document.getElementById("dailyCount").value || 0));
-      const output = document.querySelector("#dailyOutput .box .value");
-
-      const baseLog10 = parseCustomNumberLog(baseInput);
-      if (baseLog10 === null) {
-        output.textContent = "Invalid input";
-        document.getElementById("dailyTime").textContent = "Invalid input";
+    function updateDailies(){
+      const baseInput=document.getElementById("dailyValue").value;
+      const dailyCount=Math.max(0, Number(document.getElementById("dailyCount").value || 0));
+      const output=document.querySelector("#dailyOutput .box .value");
+      const baseLog10=parseCustomNumberLog(baseInput);
+      if(baseLog10===null){
+        output.textContent="Invalid input";
+        document.getElementById("dailyTime").textContent="Invalid input";
         return;
       }
-
-      const log10Multiplier = Math.log10(3.062888049375);
-      const resultLog10 = baseLog10 + dailyCount * log10Multiplier;
-
-      output.textContent = formatFromLog10(resultLog10);
-      document.getElementById("dailyTime").textContent = formatDailyTime(dailyCount);
+      const log10Multiplier=Math.log10(3.062888049375);
+      const resultLog10=baseLog10+dailyCount*log10Multiplier;
+      output.textContent=formatFromLog10(resultLog10);
+      document.getElementById("dailyTime").textContent=formatDailyTime(dailyCount);
     }
 
-    function updateGoal() {
-      const current = parseCustomNumberLog(document.getElementById("currentCoins").value);
-      const goal = parseCustomNumberLog(document.getElementById("goalCoins").value);
-
-      const dailiesBox = document.getElementById("goalDailies");
-      const timeBox = document.getElementById("goalTime");
-
-      if (current === null || goal === null) {
-        dailiesBox.textContent = "Invalid input";
-        timeBox.textContent = "Invalid input";
+    function updateGoal(){
+      const current=parseCustomNumberLog(document.getElementById("currentCoins").value);
+      const goal=parseCustomNumberLog(document.getElementById("goalCoins").value);
+      const dailiesBox=document.getElementById("goalDailies");
+      const timeBox=document.getElementById("goalTime");
+      if(current===null||goal===null){
+        dailiesBox.textContent="Invalid input";
+        timeBox.textContent="Invalid input";
         return;
       }
-
-      if (goal <= current) {
-        dailiesBox.textContent = "0";
-        timeBox.textContent = "0 hours";
+      if(goal<=current){
+        dailiesBox.textContent="0";
+        timeBox.textContent="0 hours";
         return;
       }
-
-      const logMultiplier = Math.log10(3.062888049375);
-      const needed = Math.ceil((goal - current) / logMultiplier);
-
-      dailiesBox.textContent = String(needed);
-      timeBox.textContent = formatDailyTime(needed);
+      const logMultiplier=Math.log10(3.062888049375);
+      const needed=Math.ceil((goal-current)/logMultiplier);
+      dailiesBox.textContent=String(needed);
+      timeBox.textContent=formatDailyTime(needed);
     }
 
     document.getElementById("dailyValue").addEventListener("input", updateDailies);
     document.getElementById("dailyCount").addEventListener("input", updateDailies);
     document.getElementById("currentCoins").addEventListener("input", updateGoal);
     document.getElementById("goalCoins").addEventListener("input", updateGoal);
-
-    updateDailies();
-    updateGoal();
+    updateDailies(); updateGoal();
 
     // Pet Index
-    const rarityOrder = ["one star","two star","three star","four star","five star","single moon"];
-    const versionMultipliers = {
-      normal: 1.0,
-      golden: 1.5,
-      shiny: 2.0,
-      rainbow: 2.5,
-      void: 3.0
-    };
+    const rarityOrder=["one star","two star","three star","four star","five star","single moon"];
+    const versionMultipliers={normal:1,golden:1.5,shiny:2,rainbow:2.5,void:3};
 
-    const pets = [
+    const pets=[
       {name:"Noob", coin:1.05, strength:1.05, crowns:1.25, rarity:"one star"},
       {name:"Dog", coin:1.1, strength:1.1, crowns:1.38, rarity:"one star"},
       {name:"Vampire", coin:1.15, strength:1.15, crowns:1.5, rarity:"two star"},
@@ -791,50 +734,40 @@
       {name:"Ornament", coin:40, strength:35, crowns:40, rarity:"one star"}
     ];
 
-    const rarityOrder = ["one star","two star","three star","four star","five star","single moon"];
-    const versionMultipliers = { normal:1, golden:1.5, shiny:2, rainbow:2.5, void:3 };
+    function formatStat(v){ return "x" + v.toFixed(2); }
+    const versionMultipliers={normal:1,golden:1.5,shiny:2,rainbow:2.5,void:3};
 
-    function formatStat(value) {
-      return "x" + value.toFixed(2);
+    function calcStat(base, version, level){
+      const rarityMult=versionMultipliers[version]||1;
+      const levelMult=1+(level*0.01);
+      return base*rarityMult*levelMult;
     }
 
-    function calcStat(base, version, level) {
-      const rarityMult = versionMultipliers[version] || 1;
-      const levelMult = 1 + (level * 0.01);
-      return base * rarityMult * levelMult;
-    }
+    function buildPetIndex(){
+      const container=document.getElementById("petContainer");
+      container.innerHTML="";
+      const rarityOrder=["one star","two star","three star","four star","five star","single moon"];
+      const grouped={};
+      rarityOrder.forEach(r=>grouped[r]=[]);
+      pets.forEach(p=>{ if(!grouped[p.rarity]) grouped[p.rarity]=[]; grouped[p.rarity].push(p); });
 
-    function buildPetIndex() {
-      const container = document.getElementById("petContainer");
-      container.innerHTML = "";
+      rarityOrder.forEach(rarity=>{
+        const list=grouped[rarity];
+        if(!list || list.length===0) return;
+        list.sort((a,b)=>a.coin-b.coin);
 
-      const grouped = {};
-      for (const r of rarityOrder) grouped[r] = [];
-
-      pets.forEach(p => {
-        if (!grouped[p.rarity]) grouped[p.rarity] = [];
-        grouped[p.rarity].push(p);
-      });
-
-      for (const rarity of rarityOrder) {
-        const list = grouped[rarity];
-        if (!list || list.length === 0) continue;
-
-        list.sort((a,b) => a.coin - b.coin);
-
-        const title = document.createElement("div");
-        title.className = "pet-section-title";
-        title.textContent = rarity.toUpperCase();
+        const title=document.createElement("div");
+        title.className="pet-section-title";
+        title.textContent=rarity.toUpperCase();
         container.appendChild(title);
 
-        const grid = document.createElement("div");
-        grid.className = "grid";
+        const grid=document.createElement("div");
+        grid.className="grid";
 
-        list.forEach(pet => {
-          const card = document.createElement("div");
-          card.className = "pet-card";
-
-          card.innerHTML = `
+        list.forEach(pet=>{
+          const card=document.createElement("div");
+          card.className="pet-card";
+          card.innerHTML=`
             <div class="pet-name">${pet.name}</div>
             <div class="pet-rarity">${pet.rarity}</div>
             <div class="pet-stats">
@@ -853,35 +786,27 @@
               <input class="level" type="number" min="0" max="100" value="0" />
             </div>
           `;
+          const versionSel=card.querySelector(".version");
+          const levelInput=card.querySelector(".level");
+          const coinEl=card.querySelector(".coin");
+          const strEl=card.querySelector(".str");
+          const crownEl=card.querySelector(".crown");
 
-          const versionSel = card.querySelector(".version");
-          const levelInput = card.querySelector(".level");
-          const coinEl = card.querySelector(".coin");
-          const strEl = card.querySelector(".str");
-          const crownEl = card.querySelector(".crown");
-
-          function updatePet() {
-            const v = versionSel.value;
-            const lvl = Math.max(0, Math.min(100, Number(levelInput.value || 0)));
-
-            const c = calcStat(pet.coin, v, lvl);
-            const s = calcStat(pet.strength, v, lvl);
-            const cr = calcStat(pet.crowns, v, lvl);
-
-            coinEl.textContent = formatStat(c);
-            strEl.textContent = formatStat(s);
-            crownEl.textContent = formatStat(cr);
+          function updatePet(){
+            const v=versionSel.value;
+            const lvl=Math.max(0,Math.min(100,Number(levelInput.value||0)));
+            coinEl.textContent=formatStat(calcStat(pet.coin,v,lvl));
+            strEl.textContent=formatStat(calcStat(pet.strength,v,lvl));
+            crownEl.textContent=formatStat(calcStat(pet.crowns,v,lvl));
           }
-
           versionSel.addEventListener("change", updatePet);
           levelInput.addEventListener("input", updatePet);
           updatePet();
-
           grid.appendChild(card);
         });
 
         container.appendChild(grid);
-      }
+      });
     }
 
     buildPetIndex();
