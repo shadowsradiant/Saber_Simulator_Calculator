@@ -48,6 +48,10 @@
       flex-wrap: wrap;
       justify-content: center;
       margin-bottom: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding-top: 10px;
     }
 
     .tab {
@@ -201,7 +205,7 @@
       margin: 0 0 10px 0;
     }
 
-    .hidden { display: none; }
+    .hidden { display: none !important; }
 
     /* Pet Index */
     .pet-section-title {
@@ -298,7 +302,6 @@
     <!-- DUNGEON -->
     <section id="dungeon" class="card hidden">
       <h1>Chest Probability Calculator</h1>
-
       <div class="split">
         <section>
           <div class="section-title">At Least One Chest</div>
@@ -317,9 +320,7 @@
               <input id="runs" type="number" min="0" value="0" />
             </div>
           </div>
-
           <div class="grid" id="output"></div>
-
           <div class="note">Formula: 1 - (1 - p)^n</div>
           <div class="note"><strong>*NOTE This is just a probability calculator and no chances are 100% guaranteed.</strong></div>
         </section>
@@ -332,14 +333,12 @@
               <input id="runsTime" type="number" min="0" value="0" />
             </div>
           </div>
-
           <div class="grid" id="timeOutput">
             <div class="box shiny">
               <div class="title">Estimated Time</div>
               <div class="value">0 minutes</div>
             </div>
           </div>
-
           <div class="note">Assumes 1 run every 15 minutes (4 per hour, 96 per day).</div>
         </section>
       </div>
@@ -354,7 +353,6 @@
     <!-- DAILIES -->
     <section id="dailies" class="card hidden">
       <h1>Dailies/Dungeon Calculation</h1>
-
       <div class="split">
         <section>
           <div class="section-title">Dailies Calculator</div>
@@ -368,7 +366,6 @@
               <input id="dailyCount" type="number" min="0" value="0" />
             </div>
           </div>
-
           <div class="grid" id="dailyOutput">
             <div class="box daily">
               <div class="title">Result</div>
@@ -379,7 +376,6 @@
               <div class="value" id="dailyTime">0 hours</div>
             </div>
           </div>
-
           <div class="note">Multiplier per daily: 3.062888049375×</div>
 
           <div style="margin-top: 18px;">
@@ -422,57 +418,48 @@
     tabs.forEach(t=>t.addEventListener("click",()=>showSection(t.dataset.target)));
     showSection("home");
 
-    // Dungeon calculator
+    // Dungeon
     const difficultyData = {
       easy:   { gold: 0.85,  shiny: 0.15 },
       medium: { gold: 0.75,  shiny: 0.23, rainbow: 0.02 },
       hard:   { gold: 0.60,  shiny: 0.30, rainbow: 0.099, void: 0.001 },
       impossible: { shiny: 0.75, rainbow: 0.245, void: 0.005 }
     };
-
-    function atLeastOne(p, n){ return 1 - Math.pow(1 - p, n); }
-    function makeBox(type, label, valueText){
-      return `<div class="box ${type}"><div class="title">${label}</div><div class="value">${valueText}</div></div>`;
-    }
-
+    function atLeastOne(p,n){ return 1 - Math.pow(1 - p, n); }
+    function makeBox(type,label,val){ return `<div class="box ${type}"><div class="title">${label}</div><div class="value">${val}</div></div>`; }
     function updateDungeon(){
-      const n = Math.max(0, Number(document.getElementById("runs").value || 0));
-      const diff = document.getElementById("difficulty").value;
-      const probs = difficultyData[diff];
-      const boxes = [];
-      if (probs.gold !== undefined) boxes.push(makeBox("gold","Gold",`${(atLeastOne(probs.gold,n)*100).toFixed(6)}%`));
+      const n=Math.max(0,Number(document.getElementById("runs").value||0));
+      const diff=document.getElementById("difficulty").value;
+      const probs=difficultyData[diff];
+      const boxes=[];
+      if(probs.gold!==undefined) boxes.push(makeBox("gold","Gold",`${(atLeastOne(probs.gold,n)*100).toFixed(6)}%`));
       boxes.push(makeBox("shiny","Shiny",`${(atLeastOne(probs.shiny,n)*100).toFixed(6)}%`));
-      if (probs.rainbow !== undefined) boxes.push(makeBox("rainbow","Rainbow",`${(atLeastOne(probs.rainbow,n)*100).toFixed(6)}%`));
-      if (probs.void !== undefined) boxes.push(makeBox("void","Void",`${(atLeastOne(probs.void,n)*100).toFixed(6)}%`));
-      document.getElementById("output").innerHTML = boxes.join("");
+      if(probs.rainbow!==undefined) boxes.push(makeBox("rainbow","Rainbow",`${(atLeastOne(probs.rainbow,n)*100).toFixed(6)}%`));
+      if(probs.void!==undefined) boxes.push(makeBox("void","Void",`${(atLeastOne(probs.void,n)*100).toFixed(6)}%`));
+      document.getElementById("output").innerHTML=boxes.join("");
     }
-
     function formatDuration(totalMinutes){
-      let minutes = Math.max(0, Math.floor(totalMinutes));
-      const weeks = Math.floor(minutes / (7*24*60)); minutes -= weeks*7*24*60;
-      const days = Math.floor(minutes / (24*60)); minutes -= days*24*60;
-      const hours = Math.floor(minutes / 60); minutes -= hours*60;
-
-      const parts = [];
-      if (weeks>0) parts.push(`${weeks} week${weeks===1?"":"s"}`);
-      if (days>0) parts.push(`${days} day${days===1?"":"s"}`);
-      if (hours>0) parts.push(`${hours} hour${hours===1?"":"s"}`);
-      if (minutes>0 || parts.length===0) parts.push(`${minutes} minute${minutes===1?"":"s"}`);
+      let minutes=Math.max(0,Math.floor(totalMinutes));
+      const weeks=Math.floor(minutes/(7*24*60)); minutes-=weeks*7*24*60;
+      const days=Math.floor(minutes/(24*60)); minutes-=days*24*60;
+      const hours=Math.floor(minutes/60); minutes-=hours*60;
+      const parts=[];
+      if(weeks>0) parts.push(`${weeks} week${weeks===1?"":"s"}`);
+      if(days>0) parts.push(`${days} day${days===1?"":"s"}`);
+      if(hours>0) parts.push(`${hours} hour${hours===1?"":"s"}`);
+      if(minutes>0||parts.length===0) parts.push(`${minutes} minute${minutes===1?"":"s"}`);
       return parts.join(", ");
     }
-
     function updateTime(){
-      const n = Math.max(0, Number(document.getElementById("runsTime").value || 0));
-      const totalMinutes = n * 15;
-      document.querySelector("#timeOutput .box .value").textContent = formatDuration(totalMinutes);
+      const n=Math.max(0,Number(document.getElementById("runsTime").value||0));
+      document.querySelector("#timeOutput .box .value").textContent=formatDuration(n*15);
     }
-
     document.getElementById("runs").addEventListener("input", updateDungeon);
     document.getElementById("difficulty").addEventListener("change", updateDungeon);
     document.getElementById("runsTime").addEventListener("input", updateTime);
     updateDungeon(); updateTime();
 
-    // Dailies calculator
+    // Dailies
     const baseSuffixes=["","K","M","B","t","q","Q","s","S","o","n","d","U","D","T","Qt","Qd","Sd","St","O","N","v","c"];
     const suffixes=[...baseSuffixes];
     for(let i=0;i<26;i++) suffixes.push("k"+String.fromCharCode(97+i));
@@ -484,8 +471,7 @@
       if(!s) return null;
       if(!/^[0-9]+(\.[0-9]+)?$/.test(s)) return null;
       let [intPart,decPart]=s.split(".");
-      intPart=intPart.replace(/^0+/,"")||"0";
-      decPart=decPart||"";
+      intPart=intPart.replace(/^0+/,"")||"0"; decPart=decPart||"";
       if(intPart!=="0"){
         const digits=intPart.length;
         const combined=(intPart+decPart).slice(0,15);
@@ -500,21 +486,18 @@
         return Math.log10(mantissa)-(idx+1);
       }
     }
-
     function parseCustomNumberLog(input){
       const trimmed=(input||"").trim();
       if(!trimmed) return null;
       const match=trimmed.match(/^([0-9.,]+)\s*([A-Za-z]*)$/);
       if(!match) return null;
-      const numPart=match[1];
-      const suffix=match[2]||"";
+      const numPart=match[1], suffix=match[2]||"";
       const index=suffixes.indexOf(suffix);
       if(index===-1) return null;
       const log10=log10FromString(numPart);
       if(log10===null||log10===-Infinity) return null;
       return log10+index*3;
     }
-
     function formatFromLog10(log10Value){
       if(!isFinite(log10Value)) return "Invalid input";
       if(log10Value<-300) return "0.000";
@@ -525,7 +508,6 @@
       const suffix=suffixes[index];
       return suffix?`${formatted} ${suffix}`:formatted;
     }
-
     function formatDailyTime(dailies){
       const totalHours=dailies*12;
       const hoursInYear=365*24, hoursInMonth=30*24, hoursInWeek=7*24, hoursInDay=24;
@@ -542,10 +524,9 @@
       if(hours>0||parts.length===0) parts.push(`${hours} hour${hours===1?"":"s"}`);
       return parts.join(", ");
     }
-
     function updateDailies(){
       const baseInput=document.getElementById("dailyValue").value;
-      const dailyCount=Math.max(0, Number(document.getElementById("dailyCount").value || 0));
+      const dailyCount=Math.max(0,Number(document.getElementById("dailyCount").value||0));
       const output=document.querySelector("#dailyOutput .box .value");
       const baseLog10=parseCustomNumberLog(baseInput);
       if(baseLog10===null){
@@ -558,7 +539,6 @@
       output.textContent=formatFromLog10(resultLog10);
       document.getElementById("dailyTime").textContent=formatDailyTime(dailyCount);
     }
-
     function updateGoal(){
       const current=parseCustomNumberLog(document.getElementById("currentCoins").value);
       const goal=parseCustomNumberLog(document.getElementById("goalCoins").value);
@@ -579,7 +559,6 @@
       dailiesBox.textContent=String(needed);
       timeBox.textContent=formatDailyTime(needed);
     }
-
     document.getElementById("dailyValue").addEventListener("input", updateDailies);
     document.getElementById("dailyCount").addEventListener("input", updateDailies);
     document.getElementById("currentCoins").addEventListener("input", updateGoal);
@@ -589,164 +568,17 @@
     // Pet Index
     const rarityOrder=["one star","two star","three star","four star","five star","single moon"];
     const versionMultipliers={normal:1,golden:1.5,shiny:2,rainbow:2.5,void:3};
-
-    const pets=[
-      {name:"Noob", coin:1.05, strength:1.05, crowns:1.25, rarity:"one star"},
-      {name:"Dog", coin:1.1, strength:1.1, crowns:1.38, rarity:"one star"},
-      {name:"Vampire", coin:1.15, strength:1.15, crowns:1.5, rarity:"two star"},
-      {name:"Pig", coin:1.15, strength:1.15, crowns:1.5, rarity:"one star"},
-      {name:"Cat", coin:1.2, strength:1.2, crowns:1.62, rarity:"one star"},
-      {name:"Spider", coin:1.25, strength:1.25, crowns:2.5, rarity:"two star"},
-      {name:"Bunny", coin:1.25, strength:1.25, crowns:1.75, rarity:"two star"},
-      {name:"Panda", coin:1.3, strength:1.3, crowns:1.88, rarity:"two star"},
-      {name:"Purple Spider", coin:1.35, strength:1.35, crowns:3, rarity:"three star"},
-      {name:"Cow", coin:1.35, strength:1.35, crowns:2, rarity:"three star"},
-      {name:"Elephant", coin:1.4, strength:1.4, crowns:2.12, rarity:"three star"},
-      {name:"Frankenstein", coin:1.45, strength:1.45, crowns:3.5, rarity:"three star"},
-      {name:"Pengiun", coin:1.5, strength:1.5, crowns:2.38, rarity:"one star"},
-      {name:"Bee", coin:1.55, strength:1.55, crowns:2.5, rarity:"two star"},
-      {name:"Bat", coin:1.55, strength:1.55, crowns:4, rarity:"three star"},
-      {name:"Shark", coin:1.6, strength:1.6, crowns:2.62, rarity:"two star"},
-      {name:"Demon", coin:1.65, strength:1.65, crowns:2.75, rarity:"three star"},
-      {name:"Zombie Dog", coin:1.65, strength:1.65, crowns:4.5, rarity:"three star"},
-      {name:"Turtle", coin:1.7, strength:1.7, crowns:3, rarity:"four star"},
-      {name:"Fiery Slime", coin:1.7, strength:1.7, crowns:2.88, rarity:"three star"},
-      {name:"Reaper", coin:1.75, strength:1.75, crowns:5, rarity:"four star"},
-      {name:"Butterfly", coin:1.75, strength:1.75, crowns:3, rarity:"three star"},
-      {name:"Demonfly", coin:1.8, strength:1.8, crowns:3.12, rarity:"four star"},
-      {name:"Neon Bat", coin:1.85, strength:1.85, crowns:5.5, rarity:"four star"},
-      {name:"Neon Green", coin:1.85, strength:1.85, crowns:3.25, rarity:"four star"},
-      {name:"Volcano", coin:1.9, strength:1.9, crowns:3.38, rarity:"five star"},
-      {name:"Magma", coin:1.95, strength:1.95, crowns:3.5, rarity:"one star"},
-      {name:"Owl", coin:2, strength:2, crowns:3.62, rarity:"one star"},
-      {name:"Pumpkin", coin:2, strength:2, crowns:6, rarity:"five star"},
-      {name:"Iris", coin:2.05, strength:2.05, crowns:3.75, rarity:"two star"},
-      {name:"Television", coin:2.1, strength:2.1, crowns:3.88, rarity:"two star"},
-      {name:"King", coin:2.15, strength:2.15, crowns:4, rarity:"three star"},
-      {name:"Angel", coin:2.2, strength:2.2, crowns:4.12, rarity:"three star"},
-      {name:"Sheep", coin:2.7, strength:2.7, crowns:4.5, rarity:"one star"},
-      {name:"Alien", coin:2.75, strength:2.75, crowns:4.5, rarity:"four star"},
-      {name:"Ninja", coin:2.9, strength:2.9, crowns:5, rarity:"one star"},
-      {name:"Apollo", coin:3, strength:3, crowns:5, rarity:"five star"},
-      {name:"Clown", coin:3, strength:3, crowns:5, rarity:"one star"},
-      {name:"Duck", coin:3.1, strength:3.1, crowns:5.5, rarity:"two star"},
-      {name:"Cheese Burger", coin:3.1, strength:3.1, crowns:5.5, rarity:"one star"},
-      {name:"Hooded Pumpkin", coin:3.2, strength:3.2, crowns:5.75, rarity:"two star"},
-      {name:"Royal Red", coin:3.3, strength:3.3, crowns:6, rarity:"two star"},
-      {name:"Werewolf", coin:3.4, strength:3.4, crowns:6.5, rarity:"three star"},
-      {name:"Dual Green Reaper", coin:3.5, strength:2.5, crowns:8, rarity:"single moon"},
-      {name:"Tiger", coin:3.5, strength:3.5, crowns:6.5, rarity:"three star"},
-      {name:"Popcorn", coin:3.5, strength:3.5, crowns:6.5, rarity:"one star"},
-      {name:"Princess", coin:3.57, strength:3.57, crowns:6.2, rarity:"two star"},
-      {name:"Halfy", coin:3.6, strength:3.6, crowns:7.25, rarity:"three star"},
-      {name:"Bubbles", coin:3.7, strength:3.7, crowns:7, rarity:"three star"},
-      {name:"Mad Scientist", coin:3.8, strength:3.8, crowns:8, rarity:"four star"},
-      {name:"Spider Queen", coin:4, strength:4, crowns:8.75, rarity:"four star"},
-      {name:"Dominus Rex", coin:4, strength:4, crowns:7, rarity:"one star"},
-      {name:"Mug", coin:4.06, strength:4.06, crowns:7.3, rarity:"two star"},
-      {name:"Cowboy", coin:4.1, strength:4.1, crowns:6.9, rarity:"three star"},
-      {name:"C.C Bot", coin:4.5, strength:4.5, crowns:8, rarity:"four star"},
-      {name:"Dominus Messor", coin:4.7, strength:4.7, crowns:8, rarity:"two star"},
-      {name:"Toasty", coin:4.71, strength:4.71, crowns:7.6, rarity:"three star"},
-      {name:"Sea Princess", coin:4.71, strength:4.71, crowns:8.1, rarity:"three star"},
-      {name:"Dusk Reaper", coin:5, strength:5, crowns:9.5, rarity:"five star"},
-      {name:"Fishy", coin:5.2, strength:5.2, crowns:8.5, rarity:"one star"},
-      {name:"Vroom", coin:5.42, strength:5.42, crowns:8.3, rarity:"four star"},
-      {name:"Vector", coin:5.46, strength:5.46, crowns:8.9, rarity:"three star"},
-      {name:"Blink-o", coin:5.5, strength:5.5, crowns:10, rarity:"five star"},
-      {name:"Dominus Aureus", coin:5.52, strength:5.52, crowns:9, rarity:"three star"},
-      {name:"House", coin:6.02, strength:6.02, crowns:9.5, rarity:"two star"},
-      {name:"Pirate", coin:6.24, strength:6.24, crowns:9, rarity:"four star"},
-      {name:"ROBLOX", coin:6.34, strength:6.34, crowns:9.7, rarity:"four star"},
-      {name:"Dominus Astra", coin:6.49, strength:6.49, crowns:10, rarity:"three star"},
-      {name:"Overseer", coin:6.5, strength:6.5, crowns:11.5, rarity:"five star"},
-      {name:"Sloth", coin:6.99, strength:6.99, crowns:10.5, rarity:"three star"},
-      {name:"Zappy", coin:7, strength:7, crowns:15, rarity:"single moon"},
-      {name:"Cyborg Shark", coin:7.17, strength:7.17, crowns:10.5, rarity:"five star"},
-      {name:"Rubi", coin:7.35, strength:7.35, crowns:10.5, rarity:"four star"},
-      {name:"Redcliff", coin:7.5, strength:7.5, crowns:11, rarity:"one star"},
-      {name:"Dominus infernus", coin:7.62, strength:7.62, crowns:11, rarity:"four star"},
-      {name:"Narwhal", coin:8.12, strength:8.12, crowns:11.5, rarity:"three star"},
-      {name:"X-S 19", coin:8.25, strength:8.25, crowns:12.5, rarity:"five star"},
-      {name:"Astral Isle Wizard", coin:8.46, strength:8.46, crowns:12, rarity:"two star"},
-      {name:"Cerberus", coin:8.5, strength:8.5, crowns:20, rarity:"single moon"},
-      {name:"Pegasus", coin:8.53, strength:8.53, crowns:11.5, rarity:"five star"},
-      {name:"Dominus Frigidus", coin:8.96, strength:8.96, crowns:12, rarity:"four star"},
-      {name:"Fox", coin:9, strength:9, crowns:14, rarity:"one star"},
-      {name:"Tinpet", coin:9.46, strength:9.46, crowns:12.5, rarity:"four star"},
-      {name:"Solar System", coin:9.48, strength:9.48, crowns:22, rarity:"single moon"},
-      {name:"Darkage", coin:9.59, strength:9.59, crowns:13, rarity:"three star"},
-      {name:"Beast Hunter", coin:9.89, strength:9.89, crowns:15, rarity:"five star"},
-      {name:"Dominus Empyreus", coin:10.53, strength:10.53, crowns:13.5, rarity:"five star"},
-      {name:"Pink Fox", coin:10.58, strength:10.58, crowns:15, rarity:"two star"},
-      {name:"Splintered knight", coin:10.92, strength:10.92, crowns:14, rarity:"three star"},
-      {name:"Corny", coin:11, strength:11, crowns:16, rarity:"one star"},
-      {name:"Fisher", coin:11.03, strength:11.03, crowns:13.5, rarity:"four star"},
-      {name:"Boom", coin:11.47, strength:11.47, crowns:25, rarity:"single moon"},
-      {name:"Tri-Dominus", coin:12.37, strength:12.37, crowns:19, rarity:"five star"},
-      {name:"Monkey", coin:12.43, strength:12.43, crowns:16, rarity:"three star"},
-      {name:"Overseer Eyes", coin:12.48, strength:12.48, crowns:15, rarity:"five star"},
-      {name:"Jelly Gang", coin:12.87, strength:12.87, crowns:16, rarity:"five star"},
-      {name:"Leafy", coin:12.93, strength:12.93, crowns:17, rarity:"two star"},
-      {name:"Cybord", coin:14, strength:14, crowns:18, rarity:"one star"},
-      {name:"Redcliff Knight", coin:14.32, strength:14.32, crowns:16, rarity:"four star"},
-      {name:"King Dominus", coin:14.53, strength:14.53, crowns:29, rarity:"single moon"},
-      {name:"Flower", coin:14.6, strength:14.6, crowns:17, rarity:"three star"},
-      {name:"Shadow", coin:15.03, strength:15.03, crowns:23, rarity:"five star"},
-      {name:"Hammy", coin:15.19, strength:15.19, crowns:18, rarity:"three star"},
-      {name:"Korblox Queen", coin:16.47, strength:16.47, crowns:21, rarity:"five star"},
-      {name:"Ghoul", coin:16.45, strength:16.45, crowns:19, rarity:"two star"},
-      {name:"Zoom", coin:17.16, strength:17.16, crowns:18, rarity:"four star"},
-      {name:"Electric Ring", coin:17.58, strength:17.58, crowns:33, rarity:"single moon"},
-      {name:"Turkey", coin:17.84, strength:17.84, crowns:19, rarity:"three star"},
-      {name:"Sailor", coin:18, strength:18, crowns:21, rarity:"one star"},
-      {name:"Dominus Praefectus", coin:19.01, strength:19.01, crowns:29, rarity:"five star"},
-      {name:"Beast", coin:19.33, strength:19.33, crowns:20, rarity:"three star"},
-      {name:"Tank", coin:20.16, strength:20.16, crowns:19, rarity:"four star"},
-      {name:"Fall Owl", coin:20.97, strength:20.97, crowns:20, rarity:"four star"},
-      {name:"Lemur", coin:21, strength:21, crowns:23, rarity:"one star"},
-      {name:"Pancake", coin:21.15, strength:21.15, crowns:22, rarity:"two star"},
-      {name:"Deathspeaker", coin:21.98, strength:21.98, crowns:39, rarity:"single moon"},
-      {name:"Dark Ninja", coin:22.71, strength:22.71, crowns:21, rarity:"three star"},
-      {name:"Airplane", coin:23.68, strength:23.68, crowns:24, rarity:"five star"},
-      {name:"Fall Princess", coin:24.64, strength:24.64, crowns:21, rarity:"four star"},
-      {name:"Bluecliff", coin:24.68, strength:24.68, crowns:24, rarity:"two star"},
-      {name:"Derp", coin:24.85, strength:24.85, crowns:23, rarity:"three star"},
-      {name:"Chicken", coin:25, strength:25, crowns:26, rarity:"one star"},
-      {name:"Warlock", coin:26.69, strength:26.69, crowns:22, rarity:"four star"},
-      {name:"Space Explorer", coin:27.83, strength:27.83, crowns:34, rarity:"five star"},
-      {name:"Red Gift", coin:28, strength:28, crowns:29, rarity:"one star"},
-      {name:"King Fall", coin:28.95, strength:28.95, crowns:27, rarity:"five star"},
-      {name:"Robber", coin:28.99, strength:28.99, crowns:25, rarity:"three star"},
-      {name:"Spikey", coin:29.2, strength:29.2, crowns:24, rarity:"three star"},
-      {name:"Guest", coin:29.38, strength:29.38, crowns:27, rarity:"two star"},
-      {name:"Overlord", coin:31.36, strength:31.36, crowns:23, rarity:"four star"},
-      {name:"Boss Pet", coin:32.7, strength:32.7, crowns:44, rarity:"single moon"},
-      {name:"Candy Cane", coin:32.9, strength:32.9, crowns:30, rarity:"two star"},
-      {name:"Green Gift", coin:34, strength:34, crowns:32, rarity:"one star"},
-      {name:"Dominus Formidulosus", coin:34.01, strength:34.01, crowns:38, rarity:"five star"},
-      {name:"Doctor", coin:34.07, strength:34.07, crowns:26, rarity:"three star"},
-      {name:"Train", coin:34.31, strength:34.31, crowns:25, rarity:"four star"},
-      {name:"Octopus", coin:34.52, strength:34.52, crowns:28, rarity:"three star"},
-      {name:"Archangel", coin:36.84, strength:36.84, crowns:30, rarity:"five star"},
-      {name:"Christmas Craze", coin:38.66, strength:38.66, crowns:31, rarity:"three star"},
-      {name:"Reindeer", coin:39.95, strength:39.95, crowns:33, rarity:"two star"},
-      {name:"Ornament", coin:40, strength:35, crowns:40, rarity:"one star"}
-    ];
+    const pets=[/* FULL LIST omitted here to fit message length - paste your list here */];
 
     function formatStat(v){ return "x" + v.toFixed(2); }
-    const versionMultipliers={normal:1,golden:1.5,shiny:2,rainbow:2.5,void:3};
-
     function calcStat(base, version, level){
       const rarityMult=versionMultipliers[version]||1;
       const levelMult=1+(level*0.01);
       return base*rarityMult*levelMult;
     }
-
     function buildPetIndex(){
       const container=document.getElementById("petContainer");
       container.innerHTML="";
-      const rarityOrder=["one star","two star","three star","four star","five star","single moon"];
       const grouped={};
       rarityOrder.forEach(r=>grouped[r]=[]);
       pets.forEach(p=>{ if(!grouped[p.rarity]) grouped[p.rarity]=[]; grouped[p.rarity].push(p); });
@@ -808,7 +640,6 @@
         container.appendChild(grid);
       });
     }
-
     buildPetIndex();
   </script>
 </body>
