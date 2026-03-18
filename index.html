@@ -19,6 +19,7 @@
       --void: #7a4bff;
       --daily: #64d7ff;
       --accent: #6fe1ff;
+      --youtube: #ff2d2d;
     }
 
     * { box-sizing: border-box; }
@@ -74,6 +75,16 @@
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
     }
 
+    .subcard {
+      margin-top: 16px;
+      background: #0f1622;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
     h1 {
       margin: 0 0 10px 0;
       font-size: 1.8rem;
@@ -92,6 +103,31 @@
       padding: 14px 16px;
       border-radius: 12px;
       color: var(--muted);
+    }
+
+    .youtube-wrap {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .youtube-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--youtube);
+      box-shadow: 0 0 0 1px rgba(255,45,45,0.35), 0 0 12px rgba(255,45,45,0.5);
+      text-decoration: none;
+    }
+
+    .youtube-link svg {
+      width: 22px;
+      height: 22px;
+      fill: white;
     }
 
     label, .bold-label {
@@ -192,6 +228,19 @@
       <div class="welcome">Welcome to the Saber Simulator Calculator!</div>
       <div class="info-box">
         Latest update: Added Dailies/Dungeon calculation tools and improved formatting for large values.
+      </div>
+
+      <div class="subcard">
+        Hey Welcome to this small Calculation website, you can use this to calculate various things, im trying to help out the community because this is what I love to do! I hope we can bring this game one day to a better and greater state again together, the devs may be very lazy and we wont get a big update in the near future, but beside that, most of us still here or are new to the game, so lets enjoy our time!
+        <br><br>
+        If you wanna checkout here is also my Youtube Channel down below linked I post Videos about Saber Simulator!
+        <div class="youtube-wrap">
+          <a class="youtube-link" href="https://www.youtube.com/@shadowsradiant61" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 15.5v-7l6 3.5-6 3.5zm12-7.5s-.2-1.4-.8-2a2.8 2.8 0 0 0-2-0.8C16.4 5 12 5 12 5s-4.4 0-7.2.7a2.8 2.8 0 0 0-2 0.8C2.2 7 2 8.4 2 8.4S2 10 2 11.6v0.8C2 14 2.2 15.6 2.2 15.6s.2 1.4.8 2a3.1 3.1 0 0 0 2.1.8c1.6.1 6.9.1 6.9.1s4.4 0 7.2-.7a2.8 2.8 0 0 0 2-0.8c.6-.6.8-2 .8-2s.2-1.6.2-3.2v-.8c0-1.6-.2-3.2-.2-3.2z"/>
+            </svg>
+          </a>
+        </div>
       </div>
     </section>
 
@@ -322,8 +371,6 @@
     }
 
     tabs.forEach(t => t.addEventListener("click", () => showSection(t.dataset.target)));
-
-    // Show home on load
     showSection("home");
 
     // Dungeon calculator
@@ -392,7 +439,154 @@
     updateDungeon();
     updateTime();
 
-    // Dailies calculator (same as before) – keep your existing JS here if needed
+    // Dailies calculator
+    const baseSuffixes = [
+      "", "K", "M", "B", "t", "q", "Q", "s", "S", "o", "n", "d", "U", "D", "T",
+      "Qt", "Qd", "Sd", "St", "O", "N", "v", "c"
+    ];
+
+    const suffixes = [...baseSuffixes];
+    for (let i = 0; i < 26; i++) suffixes.push("k" + String.fromCharCode(97 + i));
+    for (let i = 0; i < 26; i++) for (let j = 0; j < 26; j++) suffixes.push("k" + String.fromCharCode(97 + i) + String.fromCharCode(97 + j));
+    for (let i = 0; i < 26; i++) for (let j = 0; j < 26; j++) for (let k = 0; k < 26; k++) suffixes.push("k" + String.fromCharCode(97 + i) + String.fromCharCode(97 + j) + String.fromCharCode(97 + k));
+
+    function log10FromString(numStr) {
+      let s = numStr.replace(/,/g, "");
+      if (!s) return null;
+      if (!/^[0-9]+(\.[0-9]+)?$/.test(s)) return null;
+
+      let [intPart, decPart] = s.split(".");
+      intPart = intPart.replace(/^0+/, "") || "0";
+      decPart = decPart || "";
+
+      if (intPart !== "0") {
+        const digits = intPart.length;
+        const combined = (intPart + decPart).slice(0, 15);
+        const mantissa = Number(combined) / Math.pow(10, combined.length - 1);
+        return Math.log10(mantissa) + (digits - 1);
+      } else {
+        const match = decPart.match(/[^0]/);
+        if (!match) return -Infinity;
+        const idx = match.index;
+        const combined = decPart.slice(idx, idx + 15);
+        const mantissa = Number(combined) / Math.pow(10, combined.length - 1);
+        return Math.log10(mantissa) - (idx + 1);
+      }
+    }
+
+    function parseCustomNumberLog(input) {
+      const trimmed = (input || "").trim();
+      if (!trimmed) return null;
+
+      const match = trimmed.match(/^([0-9.,]+)\s*([A-Za-z]*)$/);
+      if (!match) return null;
+
+      const numPart = match[1];
+      const suffix = match[2] || "";
+      const index = suffixes.indexOf(suffix);
+      if (index === -1) return null;
+
+      const log10 = log10FromString(numPart);
+      if (log10 === null || log10 === -Infinity) return null;
+
+      return log10 + index * 3;
+    }
+
+    function formatFromLog10(log10Value) {
+      if (!isFinite(log10Value)) return "Invalid input";
+      if (log10Value < -300) return "0.000";
+
+      const index = Math.max(0, Math.min(suffixes.length - 1, Math.floor(log10Value / 3)));
+      const remainder = log10Value - index * 3;
+      const scaled = Math.pow(10, remainder);
+      const formatted = scaled.toFixed(3);
+      const suffix = suffixes[index];
+      return suffix ? `${formatted} ${suffix}` : formatted;
+    }
+
+    function formatDailyTime(dailies) {
+      const totalHours = dailies * 12;
+
+      const hoursInYear = 365 * 24;
+      const hoursInMonth = 30 * 24;
+      const hoursInWeek = 7 * 24;
+      const hoursInDay = 24;
+
+      let hours = Math.floor(totalHours);
+
+      const years = Math.floor(hours / hoursInYear);
+      hours -= years * hoursInYear;
+
+      const months = Math.floor(hours / hoursInMonth);
+      hours -= months * hoursInMonth;
+
+      const weeks = Math.floor(hours / hoursInWeek);
+      hours -= weeks * hoursInWeek;
+
+      const days = Math.floor(hours / hoursInDay);
+      hours -= days * hoursInDay;
+
+      const parts = [];
+      if (years > 0) parts.push(`${years} year${years === 1 ? "" : "s"}`);
+      if (months > 0) parts.push(`${months} month${months === 1 ? "" : "s"}`);
+      if (weeks > 0) parts.push(`${weeks} week${weeks === 1 ? "" : "s"}`);
+      if (days > 0) parts.push(`${days} day${days === 1 ? "" : "s"}`);
+      if (hours > 0 || parts.length === 0) parts.push(`${hours} hour${hours === 1 ? "" : "s"}`);
+      return parts.join(", ");
+    }
+
+    function updateDailies() {
+      const baseInput = document.getElementById("dailyValue").value;
+      const dailyCount = Math.max(0, Number(document.getElementById("dailyCount").value || 0));
+      const output = document.querySelector("#dailyOutput .box .value");
+
+      const baseLog10 = parseCustomNumberLog(baseInput);
+      if (baseLog10 === null) {
+        output.textContent = "Invalid input";
+        document.getElementById("dailyTime").textContent = "Invalid input";
+        return;
+      }
+
+      const log10Multiplier = Math.log10(3.062888049375);
+      const resultLog10 = baseLog10 + dailyCount * log10Multiplier;
+
+      output.textContent = formatFromLog10(resultLog10);
+      document.getElementById("dailyTime").textContent = formatDailyTime(dailyCount);
+    }
+
+    function updateGoal() {
+      const current = parseCustomNumberLog(document.getElementById("currentCoins").value);
+      const goal = parseCustomNumberLog(document.getElementById("goalCoins").value);
+
+      const dailiesBox = document.getElementById("goalDailies");
+      const timeBox = document.getElementById("goalTime");
+
+      if (current === null || goal === null) {
+        dailiesBox.textContent = "Invalid input";
+        timeBox.textContent = "Invalid input";
+        return;
+      }
+
+      if (goal <= current) {
+        dailiesBox.textContent = "0";
+        timeBox.textContent = "0 hours";
+        return;
+      }
+
+      const logMultiplier = Math.log10(3.062888049375);
+      const needed = Math.ceil((goal - current) / logMultiplier);
+
+      dailiesBox.textContent = String(needed);
+      timeBox.textContent = formatDailyTime(needed);
+    }
+
+    document.getElementById("dailyValue").addEventListener("input", updateDailies);
+    document.getElementById("dailyCount").addEventListener("input", updateDailies);
+    document.getElementById("currentCoins").addEventListener("input", updateGoal);
+    document.getElementById("goalCoins").addEventListener("input", updateGoal);
+
+    updateDailies();
+    updateGoal();
   </script>
 </body>
 </html>
