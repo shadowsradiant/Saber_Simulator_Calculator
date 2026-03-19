@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -468,101 +469,74 @@
     for(let i=0;i<26;i++) suffixes.push("k"+String.fromCharCode(97+i));
     for(let i=0;i<26;i++) for(let j=0;j<26;j++) suffixes.push("k"+String.fromCharCode(97+i)+String.fromCharCode(97+j));
     for(let i=0;i<26;i++) for(let j=0;j<26;j++) for(let k=0;k<26;k++) suffixes.push("k"+String.fromCharCode(97+i)+String.fromCharCode(97+j)+String.fromCharCode(97+k));
-const DAILY_STEPS = [
-  { t: 0,   m: 1.10 },
-  { t: 5,   m: 1.05 },
-  { t: 10,  m: 1.05 },
-  { t: 15,  m: 1.10 },
-  { t: 30,  m: 1.10 },
-  { t: 60,  m: 1.10 },
-  { t: 90,  m: 1.10 },
-  { t: 120, m: 1.15 },
-  { t: 180, m: 1.20 },
-  { t: 240, m: 1.25 }
-];
 
-const DAILY_CYCLE_MINUTES = 720; // 12h = 4h dailies + 8h cooldown
-const DAILY_CYCLE_LOG = Math.log10(3.062888049375);
+    const DAILY_STEPS = [
+      { t: 0,   m: 1.10 },
+      { t: 5,   m: 1.05 },
+      { t: 10,  m: 1.05 },
+      { t: 15,  m: 1.10 },
+      { t: 30,  m: 1.10 },
+      { t: 60,  m: 1.10 },
+      { t: 90,  m: 1.10 },
+      { t: 120, m: 1.15 },
+      { t: 180, m: 1.20 },
+      { t: 240, m: 1.25 }
+    ];
 
-function formatTimeHHMM(totalMinutes) {
-  const mins = Math.max(0, Math.floor(totalMinutes));
-  const hh = Math.floor(mins / 60);
-  const mm = mins % 60;
-  return `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}`;
-}
+    const DAILY_CYCLE_MINUTES = 720; // 12h = 4h dailies + 8h cooldown
+    const DAILY_CYCLE_LOG = Math.log10(3.062888049375);
 
-function computeMinutesToGoal(currentLog, goalLog) {
-  if (goalLog <= currentLog) return 0;
+    function formatTimeHHMM(totalMinutes) {
+      const mins = Math.max(0, Math.floor(totalMinutes));
+      const hh = Math.floor(mins / 60);
+      const mm = mins % 60;
+      return `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}`;
+    }
 
-  let cycles = Math.floor((goalLog - currentLog) / DAILY_CYCLE_LOG);
-  let log = currentLog + cycles * DAILY_CYCLE_LOG;
+    function computeMinutesToGoal(currentLog, goalLog) {
+      if (goalLog <= currentLog) return 0;
 
-  while (true) {
-    let stepLog = log;
-    for (const step of DAILY_STEPS) {
-      stepLog += Math.log10(step.m);
-      if (stepLog >= goalLog) {
-        return cycles * DAILY_CYCLE_MINUTES + step.t;
+      let cycles = Math.floor((goalLog - currentLog) / DAILY_CYCLE_LOG);
+      let log = currentLog + cycles * DAILY_CYCLE_LOG;
+
+      while (true) {
+        let stepLog = log;
+        for (const step of DAILY_STEPS) {
+          stepLog += Math.log10(step.m);
+          if (stepLog >= goalLog) {
+            return cycles * DAILY_CYCLE_MINUTES + step.t;
+          }
+        }
+        cycles += 1;
+        log += DAILY_CYCLE_LOG;
       }
     }
-    cycles += 1;
-    log += DAILY_CYCLE_LOG;
-  }
-}
 
-const DAILY_CYCLE_MINUTES = 720; // 12h = 4h dailies + 8h cooldown
-const DAILY_CYCLE_LOG = Math.log10(3.062888049375);
+    function formatTimeYMWDHM(totalMinutes) {
+      let minutes = Math.max(0, Math.floor(totalMinutes));
 
-function formatTimeYMWDHM(totalMinutes) {
-  let minutes = Math.max(0, Math.floor(totalMinutes));
+      const minInYear = 365 * 24 * 60;
+      const minInMonth = 30 * 24 * 60;
+      const minInWeek = 7 * 24 * 60;
+      const minInDay = 24 * 60;
 
-  const minInYear = 365 * 24 * 60;
-  const minInMonth = 30 * 24 * 60;
-  const minInWeek = 7 * 24 * 60;
-  const minInDay = 24 * 60;
+      const years = Math.floor(minutes / minInYear); minutes -= years * minInYear;
+      const months = Math.floor(minutes / minInMonth); minutes -= months * minInMonth;
+      const weeks = Math.floor(minutes / minInWeek); minutes -= weeks * minInWeek;
+      const days = Math.floor(minutes / minInDay); minutes -= days * minInDay;
+      const hours = Math.floor(minutes / 60); minutes -= hours * 60;
 
-  const years = Math.floor(minutes / minInYear); minutes -= years * minInYear;
-  const months = Math.floor(minutes / minInMonth); minutes -= months * minInMonth;
-  const weeks = Math.floor(minutes / minInWeek); minutes -= weeks * minInWeek;
-  const days = Math.floor(minutes / minInDay); minutes -= days * minInDay;
-  const hours = Math.floor(minutes / 60); minutes -= hours * 60;
+      const parts = [];
+      if (years > 0) parts.push(`${years} year${years === 1 ? "" : "s"}`);
+      if (months > 0) parts.push(`${months} month${months === 1 ? "" : "s"}`);
+      if (weeks > 0) parts.push(`${weeks} week${weeks === 1 ? "" : "s"}`);
+      if (days > 0) parts.push(`${days} day${days === 1 ? "" : "s"}`);
+      if (hours > 0) parts.push(`${hours} hour${hours === 1 ? "" : "s"}`);
+      if (minutes > 0 || parts.length === 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
 
-  const parts = [];
-  if (years > 0) parts.push(`${years} year${years === 1 ? "" : "s"}`);
-  if (months > 0) parts.push(`${months} month${months === 1 ? "" : "s"}`);
-  if (weeks > 0) parts.push(`${weeks} week${weeks === 1 ? "" : "s"}`);
-  if (days > 0) parts.push(`${days} day${days === 1 ? "" : "s"}`);
-  if (hours > 0) parts.push(`${hours} hour${hours === 1 ? "" : "s"}`);
-  if (minutes > 0 || parts.length === 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
-
-  return parts.join(", ");
-}
-
-}
-
-function computeMinutesToGoal(currentLog, goalLog) {
-  if (goalLog <= currentLog) return 0;
-
-  let cycles = Math.floor((goalLog - currentLog) / DAILY_CYCLE_LOG);
-  let log = currentLog + cycles * DAILY_CYCLE_LOG;
-
-  while (true) {
-    let stepLog = log;
-    for (const step of DAILY_STEPS) {
-      stepLog += Math.log10(step.m);
-      if (stepLog >= goalLog) {
-        return cycles * DAILY_CYCLE_MINUTES + step.t;
-      }
+      return parts.join(", ");
     }
-    cycles += 1;
-    log += DAILY_CYCLE_LOG;
-  }
-}
 
-
-
-
-    
     function log10FromString(numStr){
       let s=numStr.replace(/,/g,"");
       if(!s) return null;
@@ -636,31 +610,31 @@ function computeMinutesToGoal(currentLog, goalLog) {
       output.textContent=formatFromLog10(resultLog10);
       document.getElementById("dailyTime").textContent=formatDailyTime(dailyCount);
     }
-   function updateGoal() {
-  const current = parseCustomNumberLog(document.getElementById("currentCoins").value);
-  const goal = parseCustomNumberLog(document.getElementById("goalCoins").value);
+    function updateGoal() {
+      const current = parseCustomNumberLog(document.getElementById("currentCoins").value);
+      const goal = parseCustomNumberLog(document.getElementById("goalCoins").value);
 
-  const dailiesBox = document.getElementById("goalDailies");
-  const timeBox = document.getElementById("goalTime");
+      const dailiesBox = document.getElementById("goalDailies");
+      const timeBox = document.getElementById("goalTime");
 
-  if (current === null || goal === null) {
-    dailiesBox.textContent = "Invalid input";
-    timeBox.textContent = "Invalid input";
-    return;
-  }
+      if (current === null || goal === null) {
+        dailiesBox.textContent = "Invalid input";
+        timeBox.textContent = "Invalid input";
+        return;
+      }
 
-  if (goal <= current) {
-    dailiesBox.textContent = "0";
-    timeBox.textContent = "0 minutes";
-    return;
-  }
+      if (goal <= current) {
+        dailiesBox.textContent = "0";
+        timeBox.textContent = "0 minutes";
+        return;
+      }
 
-  const minutesNeeded = computeMinutesToGoal(current, goal);
-  const cyclesNeeded = Math.floor(minutesNeeded / DAILY_CYCLE_MINUTES) + 1;
+      const minutesNeeded = computeMinutesToGoal(current, goal);
+      const cyclesNeeded = Math.floor(minutesNeeded / DAILY_CYCLE_MINUTES) + 1;
 
-  dailiesBox.textContent = String(cyclesNeeded);
-  timeBox.textContent = formatTimeYMWDHM(minutesNeeded);
-}
+      dailiesBox.textContent = String(cyclesNeeded);
+      timeBox.textContent = formatTimeYMWDHM(minutesNeeded);
+    }
     document.getElementById("dailyValue").addEventListener("input", updateDailies);
     document.getElementById("dailyCount").addEventListener("input", updateDailies);
     document.getElementById("currentCoins").addEventListener("input", updateGoal);
@@ -882,9 +856,8 @@ function computeMinutesToGoal(currentLog, goalLog) {
 
         container.appendChild(grid);
       });
-      ;
-  }
-  buildPetIndex();
+    }
+    buildPetIndex();
   </script>
 </body>
 </html>
