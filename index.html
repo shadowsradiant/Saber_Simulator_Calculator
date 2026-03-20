@@ -413,6 +413,12 @@
     .pet-controls input {
       width: 140px;
     }
+    .pet-search-wrap {
+      margin-bottom: 12px;
+    }
+    .pet-search {
+      width: min(460px, 100%);
+    }
   </style>
 </head>
 <body>
@@ -626,6 +632,10 @@
     <!-- PET INDEX -->
     <section id="pet-index" class="card hidden">
       <h1>Pet Index</h1>
+      <div class="pet-search-wrap">
+        <label for="petSearch">Search Pet Name</label>
+        <input id="petSearch" class="pet-search" type="text" placeholder="Type a pet name..." />
+      </div>
       <div id="petContainer"></div>
     </section>
 
@@ -1985,10 +1995,26 @@
     }
     function buildPetIndex(){
       const container=document.getElementById("petContainer");
+      const searchInput=document.getElementById("petSearch");
+      const query=(searchInput?.value||"").trim().toLowerCase();
       container.innerHTML="";
       const grouped={};
       rarityOrder.forEach(r=>grouped[r]=[]);
-      pets.forEach(p=>{ if(!grouped[p.rarity]) grouped[p.rarity]=[]; grouped[p.rarity].push(p); });
+      pets.forEach(p=>{
+        if(query && !p.name.toLowerCase().includes(query)) return;
+        if(!grouped[p.rarity]) grouped[p.rarity]=[];
+        grouped[p.rarity].push(p);
+      });
+
+      const hasResults=Object.values(grouped).some(list=>Array.isArray(list) && list.length>0);
+      if(!hasResults){
+        const empty=document.createElement("div");
+        empty.className="info-box";
+        empty.textContent="No pets found.";
+        container.appendChild(empty);
+        return;
+      }
+
       rarityOrder.forEach(rarity=>{
         const list=grouped[rarity];
         if(!list || list.length===0) return;
@@ -2046,6 +2072,7 @@
         container.appendChild(grid);
       });
     }
+    document.getElementById("petSearch").addEventListener("input", buildPetIndex);
     buildPetIndex();
   </script>
 </body>
