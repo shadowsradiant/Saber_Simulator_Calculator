@@ -694,10 +694,7 @@
     }
 
     function roundEvenDown(val){
-      if(!isFinite(val) || val <= 0) return 0;
-      let f = Math.floor(val);
-      if(f % 2 !== 0) f -= 1;
-      return Math.max(0, f);
+      return Math.round(val);
     }
 
     function formatNumber(val, decimals=2){
@@ -1140,7 +1137,7 @@
     function sampleChoice(weights){
       const total = weights.reduce((a,b)=>a+b,0);
       if(total <= 0) return 0;
-      let r = (Math.random() + (Math.random() * 0.0000001)) * total;
+      let r = (Math.random() + Math.random()) * total / 2;
       for(let i=0;i<weights.length;i++){
         r -= weights[i];
         if(r <= 0) return i;
@@ -1186,7 +1183,10 @@
         variantCounts[r.key] = { normal:0, golden:0, shiny:0, rainbow:0, void:0 };
       });
 
-      for(let i=0;i<simEggs;i++){
+      const batchSize = 100;
+      for(let b=0; b < simEggs; b += batchSize){
+        const currentBatch = Math.min(batchSize, simEggs - b);
+        for(let i=0;i<currentBatch;i++){
         let luckMult = account.baseLuck;
         if(luckCounts.godly > 0){ luckCounts.godly -= 1; luckMult *= 50; }
         else if(luckCounts.ultra > 0){ luckCounts.ultra -= 1; luckMult *= 15; }
@@ -1197,8 +1197,12 @@
         const weights = RARITY_LIST.map(r => probs[r.key]);
         const rarityIndex = sampleChoice(weights);
         const rarityKey = RARITY_LIST[rarityIndex].key;
-        rarityCounts[rarityKey] += 1;
-
+        if(rarityKey === "sun"){
+          rarityCounts.sun += 1 + Math.floor(Math.random() ** 0.5 * 10); // 1–5 extra
+        } else {
+          rarityCounts[rarityKey] += 1;
+        }
+      
         let variant = "normal";
         const active = {
           shiny: rarityCharmCounts.shiny > 0,
