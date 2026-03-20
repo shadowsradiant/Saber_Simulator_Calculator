@@ -431,29 +431,6 @@
         <div class="welcome">Welcome to the Saber Simulator Calculator!</div>
       </div>
 
-      <div class="card countdown-card">
-        <div class="countdown-title">Weekly Update Countdown</div>
-        <div class="countdown-value">
-          <div>
-            <div class="countdown-num" id="countdownDays">00</div>
-            <div class="countdown-label">Days</div>
-          </div>
-          <div>
-            <div class="countdown-num" id="countdownHours">00</div>
-            <div class="countdown-label">Hr</div>
-          </div>
-          <div>
-            <div class="countdown-num" id="countdownMinutes">00</div>
-            <div class="countdown-label">Min</div>
-          </div>
-          <div>
-            <div class="countdown-num" id="countdownSeconds">00</div>
-            <div class="countdown-label">Sec</div>
-          </div>
-        </div>
-        <div class="countdown-foot">Resets every Friday at 06:00 UTC</div>
-      </div>
-
       <div class="card">
         <div class="info-box">
           <strong>Latest update:</strong>
@@ -479,6 +456,29 @@
             </a>
           </div>
         </div>
+      </div>
+
+      <div class="card countdown-card">
+        <div class="countdown-title">Weekly Update Countdown</div>
+        <div class="countdown-value">
+          <div>
+            <div class="countdown-num" id="countdownDays">00</div>
+            <div class="countdown-label">Days</div>
+          </div>
+          <div>
+            <div class="countdown-num" id="countdownHours">00</div>
+            <div class="countdown-label">Hr</div>
+          </div>
+          <div>
+            <div class="countdown-num" id="countdownMinutes">00</div>
+            <div class="countdown-label">Min</div>
+          </div>
+          <div>
+            <div class="countdown-num" id="countdownSeconds">00</div>
+            <div class="countdown-label">Sec</div>
+          </div>
+        </div>
+        <div class="countdown-foot">Resets every Friday at 18:00 UTC</div>
       </div>
     </section>
 
@@ -700,7 +700,7 @@
     tabs.forEach(t=>t.addEventListener("click",()=>showSection(t.dataset.target)));
     showSection("home");
 
-    // Weekly UTC Countdown (resets every Friday 06:00 UTC)
+    // Weekly UTC Countdown (resets every Friday 18:00 UTC)
     function getNextFridaySixUTC(now){
       const current = now || new Date();
       const dayUTC = current.getUTCDay(); // 0=Sun ... 5=Fri
@@ -708,7 +708,7 @@
         current.getUTCFullYear(),
         current.getUTCMonth(),
         current.getUTCDate(),
-        6, 0, 0, 0
+        18, 0, 0, 0
       ));
 
       let addDays = (5 - dayUTC + 7) % 7;
