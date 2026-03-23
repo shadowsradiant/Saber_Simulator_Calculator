@@ -393,27 +393,32 @@
       font-size: 1.2rem;
       font-weight: 800;
     }
+    .pet-grid {
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+    }
     .pet-card {
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
+      border-radius: 12px;
+      padding: 10px;
     }
     .pet-name {
       font-weight: 800;
-      font-size: 1.05rem;
-      margin-bottom: 6px;
+      font-size: 0.95rem;
+      line-height: 1.2;
+      margin-bottom: 4px;
     }
     .pet-rarity {
       color: var(--muted);
-      font-size: 0.9rem;
-      margin-bottom: 8px;
+      font-size: 0.82rem;
+      margin-bottom: 6px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
     }
     .pet-stats {
       display: flex;
-      gap: 10px;
+      gap: 6px;
       flex-wrap: wrap;
       align-items: center;
       font-weight: 700;
@@ -421,26 +426,29 @@
     .stat {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       background: #0f1622;
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 6px 10px;
+      padding: 5px 8px;
+      font-size: 0.9rem;
     }
     .stat img {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       display: block;
     }
     .pet-controls {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
-      margin-top: 10px;
+      margin-top: 8px;
     }
     .pet-controls select,
     .pet-controls input {
-      width: 140px;
+      width: 126px;
+      padding: 8px 10px;
+      font-size: 0.95rem;
     }
     .pet-search-wrap {
       margin-bottom: 12px;
@@ -455,8 +463,8 @@
       gap: 8px;
     }
     .egg-thumb {
-      width: 34px;
-      height: 34px;
+      width: 170px;
+      height: 170px;
       object-fit: contain;
       display: block;
     }
@@ -1913,7 +1921,22 @@
       }
     ];
 
-    function formatStat(v){ return "x" + Number(v).toFixed(2); }
+    function formatCompactNumber(v){
+      const num=Number(v||0);
+      if(!isFinite(num)) return "0";
+      const sign=num<0?"-":"";
+      let abs=Math.abs(num);
+      const units=["","K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc"];
+      let idx=0;
+      while(abs>=1000 && idx<units.length-1){
+        abs/=1000;
+        idx++;
+      }
+      const decimals=abs>=100?0:(abs>=10?1:2);
+      const fixed=abs.toFixed(decimals).replace(/\.0+$/,"").replace(/(\.\d*[1-9])0+$/,"$1");
+      return `${sign}${fixed}${units[idx]}`;
+    }
+    function formatStat(v){ return "x" + formatCompactNumber(v); }
     function calcStat(base, version, level){
       const rarityMult=versionMultipliers[version]||1;
       const levelMult=1+(level*0.01);
@@ -1953,7 +1976,7 @@
         container.appendChild(title);
 
         const grid=document.createElement("div");
-        grid.className="grid";
+        grid.className="grid pet-grid";
 
         list.sort((a,b)=>Number(a.coin||0)-Number(b.coin||0));
 
