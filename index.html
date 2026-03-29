@@ -1924,6 +1924,22 @@
           { name:"Rose Angel", coin:16560000, strength:16560000, crowns:1080000, rarity:"three moon" },
           { name:"Grand Vernal Sage", coin:34780000, strength:34780000, crowns:2260000, rarity:"secret" }
         ]
+      },
+      {
+        eggName: "Easter Egg1",
+        eggImage: "assets/Easter Egg1.png",
+        pets: [
+          { name:"Easter Chocolate Candy", coin:963650, strength:963650, crowns:61506, rarity:"one star", eventMulti:1.05 },
+          { name:"Jelly Beans", coin:1130000, strength:1130000, crowns:62906, rarity:"two star", eventMulti:1.1 },
+          { name:"Painted Egg", coin:1330000, strength:1330000, crowns:64306, rarity:"three star", eventMulti:1.15 },
+          { name:"Carrot Bunny", coin:1560000, strength:1560000, crowns:65706, rarity:"four star", eventMulti:1.2 },
+          { name:"Easter Case", coin:1840000, strength:1840000, crowns:67106, rarity:"four star 2nd", eventMulti:1.25 },
+          { name:"The Bunny Himself", coin:2160000, strength:2160000, crowns:68506, rarity:"five star", eventMulti:1.3 },
+          { name:"Choco Bunny", coin:3660000, strength:3660000, crowns:447810, rarity:"one moon", eventMulti:1.35 },
+          { name:"Easter God", coin:13730000, strength:13730000, crowns:892330, rarity:"two moon", eventMulti:1.5 },
+          { name:"Easter Universe", coin:17390000, strength:17390000, crowns:1130000, rarity:"three moon", eventMulti:1.9 },
+          { name:"Grand Vernal Sage", coin:34780000, strength:34780000, crowns:2260000, rarity:"secret" }
+        ]
       }
     ];
 
@@ -1997,6 +2013,7 @@
               <div class="stat"><img src="assets/coins.png" alt="Coins"> <span class="coin">${formatStat(Number(pet.coin||0))}</span></div>
               <div class="stat"><img src="assets/Strength.png" alt="Strength"> <span class="str">${formatStat(Number(pet.strength||0))}</span></div>
               <div class="stat"><img src="assets/crowns.png" alt="Crowns"> <span class="crown">${formatStat(Number(pet.crowns||0))}</span></div>
+              ${pet.eventMulti !== undefined ? `<div class="stat"><img src="assets/EasterEggIcon.png" alt="Event Multi"> <span class="event">${formatStat(Number(pet.eventMulti||0))}</span></div>` : ""}
             </div>
             <div class="pet-controls">
               <select class="version">
@@ -2015,6 +2032,7 @@
           const coinEl=card.querySelector(".coin");
           const strEl=card.querySelector(".str");
           const crownEl=card.querySelector(".crown");
+          const eventEl=card.querySelector(".event");
 
           function updatePet(){
             const v=versionSel.value;
@@ -2022,6 +2040,9 @@
             coinEl.textContent=formatStat(calcStat(Number(pet.coin||0),v,lvl));
             strEl.textContent=formatStat(calcStat(Number(pet.strength||0),v,lvl));
             crownEl.textContent=formatStat(calcStat(Number(pet.crowns||0),v,lvl));
+            if(eventEl){
+              eventEl.textContent=formatStat(calcStat(Number(pet.eventMulti||0),v,lvl));
+            }
           }
 
           versionSel.addEventListener("change", updatePet);
