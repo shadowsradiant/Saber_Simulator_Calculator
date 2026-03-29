@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -227,6 +228,20 @@
       font-size: 1rem;
       font-weight: 800;
       color: #ffffff;
+    }
+    .latest-list {
+      margin: 10px 0 0 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+    .latest-list li {
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+    .latest-date {
+      color: #d8e6ff;
+      font-weight: 700;
+      margin-right: 8px;
     }
 
     .countdown-card {
@@ -516,7 +531,7 @@
             <div class="countdown-label">Sec</div>
           </div>
         </div>
-        <div class="countdown-foot">Resets every Friday at 18:00 UTC</div>
+        <div class="countdown-foot">Resets every Friday at 19:00 UTC</div>
       </div>
 
       <div class="card">
@@ -537,14 +552,7 @@
       <div class="card">
         <div class="info-box">
           <strong>Latest update:</strong>
-          <br><br>
-          Added Dailies/Dungeon calculation tools into their tabs, added a pet index with the 1st 141 stat pets from the Index which currently contains 2228 Pets! In the Future will add more pets I will work my way up from the bottom side of the stat pets to the top up until the newest updates, I will give the website weekly updates and potentionally add more features, for example a calculator for how much strength you gain per hour/day depending on certain values or an element grinder calculator If I can figure that out, but more in the upcoming Updates!
-          <br><br>
-          I also added a new tab, Hatching Calculator with various feature, next I will be adding the newest pet + search bar to the pet tab! And if anyone wants to support me, I will also add a small dono link down below, where if you wanna support me putting in so much work into this project, then feel free to donate like 1$ or whatever, I appreciate the support anyways, and I will keep up my work no matter what.
-          <br><br>
-          UPDATED DAILIES CALCULATOR!!
-          You can now add cooldown, to see ur destination goal to far more precision! Weekly Update Countdown is uptnext to add!
-          <br><br>
+          <ul id="latestUpdateList" class="latest-list"></ul>
         </div>
       </div>
     </section>
@@ -771,7 +779,24 @@
     tabs.forEach(t=>t.addEventListener("click",()=>showSection(t.dataset.target)));
     showSection("home");
 
-    // Weekly UTC Countdown (resets every Friday 18:00 UTC)
+    // Home changelog: keep newest items first, UI shows only top 3 (English only)
+    const homeChangeLog = [
+      { date: "2026-03-29", text: "Added Easter Egg1 to Pet Index with all pets and stats, including event multipliers." },
+      { date: "2026-03-29", text: "Added Event Multi stat support in pet cards with Easter icon and version/level scaling." },
+      { date: "2026-03-29", text: "Pet Index now uses compact stat formatting (K/M/B), bigger egg image, and smaller pet cards." },
+      { date: "2026-03-28", text: "Fixed Hatch Calculator simulation flow so Run Simulation works reliably in both From Time and From Eggs modes." },
+      { date: "2026-03-28", text: "Added Weekly Update Countdown on Home with automatic weekly reset every Friday at 18:00 UTC." }
+    ];
+
+    function renderLatestUpdates(){
+      const list=document.getElementById("latestUpdateList");
+      if(!list) return;
+      const latest=homeChangeLog.slice(0,3);
+      list.innerHTML=latest.map(item=>`<li><span class="latest-date">${item.date}</span>${item.text}</li>`).join("");
+    }
+    renderLatestUpdates();
+
+    // Weekly UTC Countdown (resets every Friday 19:00 UTC)
     function getNextFridaySixUTC(now){
       const current = now || new Date();
       const dayUTC = current.getUTCDay(); // 0=Sun ... 5=Fri
@@ -779,7 +804,7 @@
         current.getUTCFullYear(),
         current.getUTCMonth(),
         current.getUTCDate(),
-        18, 0, 0, 0
+        19, 0, 0, 0
       ));
 
       let addDays = (5 - dayUTC + 7) % 7;
@@ -2067,3 +2092,4 @@
   </script>
 </body>
 </html>
+
