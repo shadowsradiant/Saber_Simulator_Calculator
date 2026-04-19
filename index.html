@@ -296,11 +296,6 @@
       color: #acc4e1;
       font-size: 0.9rem;
     }
-    .weekly-drop-note {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
 
     .action-btn {
       margin-top: 8px;
@@ -544,12 +539,9 @@
       </div>
 
       <div class="card">
-        <h1 style="margin-bottom: 0;">Weekly Update Drop</h1>
+        <h1 style="margin-bottom: 0;">Weekly Update Drop Prediction</h1>
         <div class="weekly-drop-meta" id="weeklyDropMeta"></div>
         <div class="grid pet-grid" id="weeklyDropPredictions"></div>
-        <div class="weekly-drop-note">
-          Prediction model: 1 Star to 3 Moon uses <strong>1.05x</strong> weekly growth. Secret updates every <strong>3 weeks</strong> from Easter Secret base stats with cycle growth × <strong>1.05^3</strong>.
-        </div>
       </div>
 
       <div class="card">
@@ -2124,7 +2116,7 @@
       { name:"Single Moon", coin:4040000, strength:4040000, crowns:493710, rarity:"one moon" },
       { name:"Double Moon", coin:15140000, strength:15140000, crowns:983790, rarity:"two moon" },
       { name:"Triple Moon", coin:19170000, strength:19170000, crowns:1250000, rarity:"three moon" },
-      { name:"SECRET", coin:34780000, strength:34780000, crowns:2260000, rarity:"secret" }
+      { name:"SECRET", coin:38340000, strength:38340000, crowns:2490000, rarity:"secret" }
     ];
 
     function getWeeklyDropIndexForNextUpdate(){
@@ -2143,15 +2135,9 @@
     }
 
     function formatShortDuration(ms){
-      let totalSec = Math.max(0, Math.floor(ms / 1000));
-      const days = Math.floor(totalSec / 86400); totalSec -= days * 86400;
-      const hours = Math.floor(totalSec / 3600); totalSec -= hours * 3600;
-      const minutes = Math.floor(totalSec / 60);
-      const parts = [];
-      if(days > 0) parts.push(`${days} day${days===1?"":"s"}`);
-      if(hours > 0) parts.push(`${hours} hour${hours===1?"":"s"}`);
-      if(minutes > 0 || parts.length === 0) parts.push(`${minutes} minute${minutes===1?"":"s"}`);
-      return parts.join(", ");
+      const totalSec = Math.max(0, Math.floor(ms / 1000));
+      const days = Math.floor(totalSec / 86400);
+      return `${days} day${days===1?"":"s"}`;
     }
 
     function renderWeeklyDropPredictions(){
@@ -2162,10 +2148,10 @@
       const now = new Date();
       const weekIndex = getWeeklyDropIndexForNextUpdate();
       const nonSecretMultiplier = Math.pow(1.05, weekIndex + 1);
-      const secretCycle = Math.ceil(weekIndex / 3);
-      const secretMultiplier = Math.pow(1.05, 3 * secretCycle);
       const nextUpdate = getNextFridaySixUTC(now);
       const nextSecret = getNextSecretReleaseUTC(now);
+      const secretCycle = Math.max(1, Math.floor((nextSecret.getTime() - FIRST_SECRET_RELEASE_UTC) / (21 * 24 * 60 * 60 * 1000)) + 1);
+      const secretMultiplier = Math.pow(1.05, 3 * secretCycle);
       const nextSecretIn = formatShortDuration(nextSecret.getTime() - now.getTime());
 
       meta.textContent = `Next update: ${nextUpdate.toUTCString()} | Prediction week #${weekIndex} | Secret cycle #${secretCycle} | Next secret in ${nextSecretIn} (${nextSecret.toUTCString()})`;
