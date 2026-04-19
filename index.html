@@ -538,10 +538,29 @@
         <div class="countdown-foot">Resets every Friday at 18:00 UTC</div>
       </div>
 
-      <div class="card">
+      <div class="card" id="weeklyDropCard">
         <h1 style="margin-bottom: 0;">Weekly Update Drop Prediction</h1>
         <div class="weekly-drop-meta" id="weeklyDropMeta"></div>
         <div class="grid pet-grid" id="weeklyDropPredictions"></div>
+        <div class="info-box" style="margin-top:12px;">
+          <strong>Class Price & Multiplier Prediction</strong>
+          <div id="classPredictionMeta" class="weekly-drop-meta" style="margin-top:8px;"></div>
+          <div class="grid">
+            <div class="box shiny">
+              <div class="title">Class Cost Prediction</div>
+              <div class="value" id="classPredCost">0</div>
+            </div>
+            <div class="box shiny">
+              <div class="title">Strength/Coins Prediction</div>
+              <div class="value" id="classPredSC">0</div>
+            </div>
+            <div class="box shiny">
+              <div class="title">Crowns Prediction</div>
+              <div class="value" id="classPredCrowns">0</div>
+            </div>
+          </div>
+          <div class="note">Base values: 20.35 kce, x1.1988 q, x12.108 Q. Growth model: class cost ×150 weekly, stats ×1.2 weekly.</div>
+        </div>
       </div>
 
       <div class="card">
@@ -559,7 +578,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" id="latestUpdateCard">
         <div class="info-box">
           <strong>Latest update:</strong>
           <ul id="latestUpdateList" class="latest-list"></ul>
@@ -791,6 +810,7 @@
 
     // Home changelog: keep newest items first, UI shows only top 10 (English only)
     const homeChangeLog = [
+      { date: "2026-04-19", text: "Moved Weekly Update Drop Prediction below Latest Update and added Class Price/Stat weekly prediction cards." },
       { date: "2026-04-19", text: "Adjusted Weekly Update Drop prediction logic to 1.05x growth, 3-week secret cycles, and next-secret ETA display." },
       { date: "2026-04-19", text: "Added Weekly Update Drop predictions on Home with rarity/level controls and 3-week secret cycle logic." },
       { date: "2026-04-13", text: "Added Paintball Egg to Pet Index with full pet lineup, stats, and rarities." },
@@ -814,6 +834,7 @@
       list.innerHTML=latest.map(item=>`<li><span class="latest-date">${item.date}</span>${item.text}</li>`).join("");
     }
     renderLatestUpdates();
+    placeWeeklyDropCard();
 
     // Weekly UTC Countdown (resets every Friday 18:00 UTC)
     function getNextFridaySixUTC(now){
@@ -2140,6 +2161,65 @@
       return `${days} day${days===1?"":"s"}`;
     }
 
+    function incLetters(s){
+      const arr = String(s||"a").split("");
+      let i = arr.length - 1;
+      while(i >= 0){
+        if(arr[i] !== "z"){
+          arr[i] = String.fromCharCode(arr[i].charCodeAt(0) + 1);
+          return arr.join("");
+        }
+        arr[i] = "a";
+        i--;
+      }
+      return "a" + arr.join("");
+    }
+
+    function multiplyClassCost(weeksAhead){
+      let mant = 20.35;
+      let letters = "ce";
+      const factor = Math.pow(150, Math.max(0, weeksAhead));
+      mant *= factor;
+      while(mant >= 1000){
+        mant /= 1000;
+        letters = incLetters(letters);
+      }
+      return `${mant.toFixed(6).replace(/\.0+$/,"").replace(/(\.\d*[1-9])0+$/,"$1")} k${letters}`;
+    }
+
+    function multiplyStatLabel(baseMant, baseSuffix, weeksAhead){
+      const statSuffixes=["","K","M","B","t","q","Q","s","S","o","n","d","U","D","T","Qt","Qd","Sd","St","O","N","v","c"];
+      let idx = statSuffixes.indexOf(baseSuffix);
+      if(idx < 0) idx = 0;
+      let mant = baseMant * Math.pow(1.2, Math.max(0, weeksAhead));
+      while(mant >= 1000 && idx < statSuffixes.length - 1){
+        mant /= 1000;
+        idx++;
+      }
+      const formatted = mant.toFixed(6).replace(/\.0+$/,"").replace(/(\.\d*[1-9])0+$/,"$1");
+      return `x${formatted} ${statSuffixes[idx]}`;
+    }
+
+    function renderClassPrediction(weeksAhead){
+      const costEl = document.getElementById("classPredCost");
+      const scEl = document.getElementById("classPredSC");
+      const crownsEl = document.getElementById("classPredCrowns");
+      const metaEl = document.getElementById("classPredictionMeta");
+      if(!costEl || !scEl || !crownsEl || !metaEl) return;
+
+      costEl.textContent = multiplyClassCost(weeksAhead);
+      scEl.textContent = multiplyStatLabel(1.1988, "q", weeksAhead);
+      crownsEl.textContent = multiplyStatLabel(12.108, "Q", weeksAhead);
+      metaEl.textContent = `Predicted for update week #${weeksAhead}.`;
+    }
+
+    function placeWeeklyDropCard(){
+      const weeklyCard = document.getElementById("weeklyDropCard");
+      const latestCard = document.getElementById("latestUpdateCard");
+      if(!weeklyCard || !latestCard) return;
+      latestCard.insertAdjacentElement("afterend", weeklyCard);
+    }
+
     function renderWeeklyDropPredictions(){
       const container=document.getElementById("weeklyDropPredictions");
       const meta=document.getElementById("weeklyDropMeta");
@@ -2155,6 +2235,7 @@
       const nextSecretIn = formatShortDuration(nextSecret.getTime() - now.getTime());
 
       meta.textContent = `Next update: ${nextUpdate.toUTCString()} | Prediction week #${weekIndex} | Secret cycle #${secretCycle} | Next secret in ${nextSecretIn} (${nextSecret.toUTCString()})`;
+      renderClassPrediction(weekIndex);
       container.innerHTML="";
 
       weeklyDropSeedPets.forEach(pet=>{
