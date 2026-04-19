@@ -291,6 +291,16 @@
       color: #9fb6d1;
       font-size: 0.9rem;
     }
+    .weekly-drop-meta {
+      margin: 6px 0 12px;
+      color: #acc4e1;
+      font-size: 0.9rem;
+    }
+    .weekly-drop-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
 
     .action-btn {
       margin-top: 8px;
@@ -531,6 +541,15 @@
           </div>
         </div>
         <div class="countdown-foot">Resets every Friday at 18:00 UTC</div>
+      </div>
+
+      <div class="card">
+        <h1 style="margin-bottom: 0;">Weekly Update Drop</h1>
+        <div class="weekly-drop-meta" id="weeklyDropMeta"></div>
+        <div class="grid pet-grid" id="weeklyDropPredictions"></div>
+        <div class="weekly-drop-note">
+          Prediction model: 1 Star to 3 Moon uses <strong>0.5x</strong> each weekly update. Secret updates every <strong>3 weeks</strong> with base stats × <strong>1.05^3</strong> per secret cycle.
+        </div>
       </div>
 
       <div class="card">
@@ -780,6 +799,7 @@
 
     // Home changelog: keep newest items first, UI shows only top 10 (English only)
     const homeChangeLog = [
+      { date: "2026-04-19", text: "Added Weekly Update Drop predictions on Home with rarity/level controls and 3-week secret cycle logic." },
       { date: "2026-04-13", text: "Added Paintball Egg to Pet Index with full pet lineup, stats, and rarities." },
       { date: "2026-04-13", text: "Added Easter Egg2 to Pet Index with full pet lineup, stats, and event multipliers." },
       { date: "2026-03-29", text: "Added Easter Egg1 to Pet Index with all pets and stats, including event multipliers." },
@@ -2062,7 +2082,7 @@
           { name:"Paintball Pro", coin:1720000, strength:1720000, crowns:72728, rarity:"four star" },
           { name:"Paintball Serephim", coin:2030000, strength:2030000, crowns:74128, rarity:"four star 2nd" },
           { name:"Paintball Hacker", coin:2380000, strength:2380000, crowns:75528, rarity:"five star" },
-          { name:"Paintball Cutie", coin:4040000, strength:4040000, crowns:493710, rarity:"one moon" },
+          { name:"Painball Cutie", coin:4040000, strength:4040000, crowns:493710, rarity:"one moon" },
           { name:"Paintball Lunar", coin:15140000, strength:15140000, crowns:983790, rarity:"two moon" },
           { name:"Paintball Queen", coin:19170000, strength:19170000, crowns:1250000, rarity:"three moon" },
           { name:"Grand Vernal Sage", coin:34780000, strength:34780000, crowns:2260000, rarity:"secret" }
@@ -2090,6 +2110,89 @@
       const rarityMult=versionMultipliers[version]||1;
       const levelMult=1+(level*0.01);
       return base*rarityMult*levelMult;
+    }
+    const WEEKLY_DROP_REFERENCE_UTC = Date.UTC(2026, 3, 17, 18, 0, 0, 0);
+    const weeklyDropSeedPets = [
+      { name:"Paintballed", coin:1060000, strength:1060000, crowns:68528, rarity:"one star" },
+      { name:"Paintball Bunny", coin:1250000, strength:1250000, crowns:69928, rarity:"two star" },
+      { name:"Paintball Noob", coin:1470000, strength:1470000, crowns:71328, rarity:"three star" },
+      { name:"Paintball Pro", coin:1720000, strength:1720000, crowns:72728, rarity:"four star" },
+      { name:"Paintball Serephim", coin:2030000, strength:2030000, crowns:74128, rarity:"four star 2nd" },
+      { name:"Paintball Hacker", coin:2380000, strength:2380000, crowns:75528, rarity:"five star" },
+      { name:"Painball Cutie", coin:4040000, strength:4040000, crowns:493710, rarity:"one moon" },
+      { name:"Paintball Lunar", coin:15140000, strength:15140000, crowns:983790, rarity:"two moon" },
+      { name:"Paintball Queen", coin:19170000, strength:19170000, crowns:1250000, rarity:"three moon" },
+      { name:"Grand Vernal Sage", coin:34780000, strength:34780000, crowns:2260000, rarity:"secret" }
+    ];
+
+    function getWeeklyDropIndexForNextUpdate(){
+      const nextUpdate = getNextFridaySixUTC(new Date());
+      const weeks = Math.floor((nextUpdate.getTime() - WEEKLY_DROP_REFERENCE_UTC) / (7 * 24 * 60 * 60 * 1000));
+      return Math.max(1, weeks);
+    }
+
+    function renderWeeklyDropPredictions(){
+      const container=document.getElementById("weeklyDropPredictions");
+      const meta=document.getElementById("weeklyDropMeta");
+      if(!container || !meta) return;
+
+      const weekIndex = getWeeklyDropIndexForNextUpdate();
+      const nonSecretMultiplier = Math.pow(0.5, weekIndex);
+      const secretCycle = Math.floor((weekIndex - 1) / 3) + 1;
+      const secretMultiplier = Math.pow(1.05, 3 * secretCycle);
+      const nextUpdate = getNextFridaySixUTC(new Date());
+
+      meta.textContent = `Next update: ${nextUpdate.toUTCString()} | Prediction week #${weekIndex} | Secret cycle #${secretCycle}`;
+      container.innerHTML="";
+
+      weeklyDropSeedPets.forEach(pet=>{
+        const isSecret = pet.rarity === "secret";
+        const mult = isSecret ? secretMultiplier : nonSecretMultiplier;
+        const baseCoin = pet.coin * mult;
+        const baseStr = pet.strength * mult;
+        const baseCrowns = pet.crowns * mult;
+
+        const card=document.createElement("div");
+        card.className="pet-card";
+        card.innerHTML=`
+          <div class="pet-name">${pet.name}</div>
+          <div class="pet-rarity">${pet.rarity}</div>
+          <div class="pet-stats">
+            <div class="stat"><img src="assets/coins.png" alt="Coins"> <span class="coin">${formatStat(baseCoin)}</span></div>
+            <div class="stat"><img src="assets/Strength.png" alt="Strength"> <span class="str">${formatStat(baseStr)}</span></div>
+            <div class="stat"><img src="assets/crowns.png" alt="Crowns"> <span class="crown">${formatStat(baseCrowns)}</span></div>
+          </div>
+          <div class="pet-controls">
+            <select class="version">
+              <option value="normal">Normal</option>
+              <option value="golden">Golden</option>
+              <option value="shiny">Shiny</option>
+              <option value="rainbow">Rainbow</option>
+              <option value="void">Void</option>
+            </select>
+            <input class="level" type="number" min="0" max="100" value="0" />
+          </div>
+        `;
+
+        const versionSel=card.querySelector(".version");
+        const levelInput=card.querySelector(".level");
+        const coinEl=card.querySelector(".coin");
+        const strEl=card.querySelector(".str");
+        const crownEl=card.querySelector(".crown");
+
+        function updatePredictionCard(){
+          const v=versionSel.value;
+          const lvl=Math.max(0,Math.min(100,Number(levelInput.value||0)));
+          coinEl.textContent=formatStat(calcStat(baseCoin,v,lvl));
+          strEl.textContent=formatStat(calcStat(baseStr,v,lvl));
+          crownEl.textContent=formatStat(calcStat(baseCrowns,v,lvl));
+        }
+        versionSel.addEventListener("change", updatePredictionCard);
+        levelInput.addEventListener("input", updatePredictionCard);
+        updatePredictionCard();
+
+        container.appendChild(card);
+      });
     }
 
     function buildPetIndex(){
@@ -2191,6 +2294,7 @@
 
     document.getElementById("petSearch").addEventListener("input", buildPetIndex);
     buildPetIndex();
+    renderWeeklyDropPredictions();
   </script>
 </body>
 </html>
