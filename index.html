@@ -559,7 +559,6 @@
               <div class="value" id="classPredCrowns">0</div>
             </div>
           </div>
-          <div class="note">Base values: 20.35 kce, x1.1988 q, x12.108 Q. Growth model: class cost ×150 weekly, stats ×1.2 weekly.</div>
         </div>
       </div>
 
@@ -834,7 +833,7 @@
       list.innerHTML=latest.map(item=>`<li><span class="latest-date">${item.date}</span>${item.text}</li>`).join("");
     }
     renderLatestUpdates();
-    placeWeeklyDropCard();
+    placeLatestUpdateBelowPrediction();
 
     // Weekly UTC Countdown (resets every Friday 18:00 UTC)
     function getNextFridaySixUTC(now){
@@ -2213,11 +2212,11 @@
       metaEl.textContent = `Predicted for update week #${weeksAhead}.`;
     }
 
-    function placeWeeklyDropCard(){
+    function placeLatestUpdateBelowPrediction(){
       const weeklyCard = document.getElementById("weeklyDropCard");
       const latestCard = document.getElementById("latestUpdateCard");
       if(!weeklyCard || !latestCard) return;
-      latestCard.insertAdjacentElement("afterend", weeklyCard);
+      weeklyCard.insertAdjacentElement("afterend", latestCard);
     }
 
     function renderWeeklyDropPredictions(){
