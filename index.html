@@ -2215,7 +2215,7 @@
         const box = document.createElement("div");
         box.className = "box shiny";
         box.innerHTML = `
-          <div class="title">Next Class #${idx + 1} (Week #${w})</div>
+          <div class="title">Next Class #${idx + 1}</div>
           <div class="value">${multiplyClassCost(w)}</div>
           <div style="margin-top:8px;color:var(--muted);font-weight:700;">S/C: ${multiplyStatLabel(1.1988, "q", w)}</div>
           <div style="color:var(--muted);font-weight:700;">Crowns: ${multiplyStatLabel(12.108, "Q", w)}</div>
@@ -2223,7 +2223,7 @@
         gridEl.appendChild(box);
       });
 
-      metaEl.textContent = `Showing next 3 classes after week #${weeksAhead} (skips current class).`;
+      metaEl.textContent = "Showing the next 3 classes (current class skipped).";
     }
 
     function placeLatestUpdateBelowPrediction(){
