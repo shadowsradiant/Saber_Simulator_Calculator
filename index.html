@@ -560,20 +560,7 @@
         <div class="info-box" style="margin-top:12px;">
           <strong>Class Price & Multiplier Prediction</strong>
           <div id="classPredictionMeta" class="weekly-drop-meta" style="margin-top:8px;"></div>
-          <div class="grid">
-            <div class="box shiny">
-              <div class="title">Class Cost Prediction</div>
-              <div class="value" id="classPredCost">0</div>
-            </div>
-            <div class="box shiny">
-              <div class="title">Strength/Coins Prediction</div>
-              <div class="value" id="classPredSC">0</div>
-            </div>
-            <div class="box shiny">
-              <div class="title">Crowns Prediction</div>
-              <div class="value" id="classPredCrowns">0</div>
-            </div>
-          </div>
+          <div class="grid" id="classPredictionGrid"></div>
         </div>
       </div>
 
@@ -2216,16 +2203,27 @@
     }
 
     function renderClassPrediction(weeksAhead){
-      const costEl = document.getElementById("classPredCost");
-      const scEl = document.getElementById("classPredSC");
-      const crownsEl = document.getElementById("classPredCrowns");
+      const gridEl = document.getElementById("classPredictionGrid");
       const metaEl = document.getElementById("classPredictionMeta");
-      if(!costEl || !scEl || !crownsEl || !metaEl) return;
+      if(!gridEl || !metaEl) return;
 
-      costEl.textContent = multiplyClassCost(weeksAhead);
-      scEl.textContent = multiplyStatLabel(1.1988, "q", weeksAhead);
-      crownsEl.textContent = multiplyStatLabel(12.108, "Q", weeksAhead);
-      metaEl.textContent = `Predicted for update week #${weeksAhead}.`;
+      // Skip the currently shown class and render the next 3 classes.
+      const targets = [weeksAhead + 1, weeksAhead + 2, weeksAhead + 3];
+      gridEl.innerHTML = "";
+
+      targets.forEach((w, idx) => {
+        const box = document.createElement("div");
+        box.className = "box shiny";
+        box.innerHTML = `
+          <div class="title">Next Class #${idx + 1} (Week #${w})</div>
+          <div class="value">${multiplyClassCost(w)}</div>
+          <div style="margin-top:8px;color:var(--muted);font-weight:700;">S/C: ${multiplyStatLabel(1.1988, "q", w)}</div>
+          <div style="color:var(--muted);font-weight:700;">Crowns: ${multiplyStatLabel(12.108, "Q", w)}</div>
+        `;
+        gridEl.appendChild(box);
+      });
+
+      metaEl.textContent = `Showing next 3 classes after week #${weeksAhead} (skips current class).`;
     }
 
     function placeLatestUpdateBelowPrediction(){
