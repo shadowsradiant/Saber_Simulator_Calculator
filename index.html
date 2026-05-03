@@ -2119,6 +2119,22 @@
           { name:"Starcrusher", coin:21140000, strength:21140000, crowns:1370000, rarity:"three moon" },
           { name:"The Antimatter", coin:44390000, strength:44390000, crowns:2890000, rarity:"secret" }
         ]
+      },
+      {
+        eggName: "Pyramid Egg",
+        eggImage: "assets/PyramidEgg.png",
+        pets: [
+          { name:"Lapis Lad", coin:1230000, strength:1230000, crowns:80432, rarity:"one star" },
+          { name:"Sandy Scarab", coin:1450000, strength:1450000, crowns:81832, rarity:"two star" },
+          { name:"Mummy Friend", coin:1700000, strength:1700000, crowns:83232, rarity:"three star" },
+          { name:"Soul of Seven", coin:2000000, strength:2000000, crowns:84632, rarity:"four star" },
+          { name:"Anubis", coin:2340000, strength:2340000, crowns:86032, rarity:"four star 2nd" },
+          { name:"Gilded Pharoah", coin:2750000, strength:2750000, crowns:87432, rarity:"five star" },
+          { name:"Golden Scarab", coin:4670000, strength:4670000, crowns:571530, rarity:"one moon" },
+          { name:"Tomb King", coin:17520000, strength:17520000, crowns:1140000, rarity:"two moon" },
+          { name:"Cursed Pharaoh", coin:22190000, strength:22190000, crowns:1440000, rarity:"three moon" },
+          { name:"The Antimatter", coin:44390000, strength:44390000, crowns:2890000, rarity:"secret" }
+        ]
       }
     ];
 
@@ -2224,7 +2240,16 @@
       if(!gridEl || !metaEl) return;
 
       // Skip the currently shown class and render the next 3 classes.
-      const targets = [weeksAhead + 1, weeksAhead + 2, weeksAhead + 3];
+      // Also skip the user-requested "10.3 kch" class.
+      const targets = [];
+      let w = weeksAhead + 1;
+      while(targets.length < 3){
+        const costLabel = multiplyClassCost(w).replace(/\s+/g, "").toLowerCase();
+        if(costLabel !== "10.3kch"){
+          targets.push(w);
+        }
+        w++;
+      }
       gridEl.innerHTML = "";
 
       targets.forEach((w, idx) => {
